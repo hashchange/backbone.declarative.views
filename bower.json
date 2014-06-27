@@ -1,0 +1,46 @@
+{
+  "name": "backbone.declarative.views",
+  "version": "1.0.0",
+  "homepage": "https://github.com/hashchange/backbone.declarative.views",
+  "authors": [
+    "Michael Heim <heim@zeilenwechsel.de>"
+  ],
+  "description": "Read the markup for the container element of a view directly from its template. Keep the tag name, class name and other attributes of `el` out of Backbone.View Javascript code.",
+  "main": "dist/backbone.declarative.views.js",
+  "keywords": [
+    "backbone",
+    "views",
+    "el",
+    "html",
+    "template",
+    "tag",
+    "tagName",
+    "className",
+    "attributes"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "public",
+    "reports",
+    "demo",
+    "lib-other",
+    "web-mocha",
+    "spec",
+    "src",
+    "Gruntfile.js",
+    "karma.conf.js",
+    "package.json"
+  ],
+  "devDependencies": {
+  },
+  "dependencies": {
+    "underscore": "^1.5.0 <1.7.0",
+    "backbone": "^1.0.0 <1.2.0",
+    "jquery": "^1.5.0 || ^2.0.0 <2.2.0"
+  }
+}
