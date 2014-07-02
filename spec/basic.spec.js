@@ -82,7 +82,7 @@
                     expect( View ).to.createElWithStandardMechanism;
                 } );
 
-                it( 'when the view references a template, but it does not  not have data attributes describing the el', function () {
+                it( 'when the view references a template, but it does not have data attributes describing the el', function () {
                     View = Backbone.View.extend( { template: "#template" } );
                     expect( View ).to.createElWithStandardMechanism;
                 } );
@@ -104,7 +104,7 @@
 
         } );
 
-        describe( 'Setting the template property.', function () {
+        describe( 'Setting the template property', function () {
 
             beforeEach( function () {
                 $templateNode.attr( dataAttributes );

@@ -82,7 +82,7 @@
                     expect( View ).to.createElWithStandardMechanism;
                 } );
 
-                it( 'when the view references a template, but it does not  not have data attributes describing the el', function () {
+                it( 'when the view references a template, but it does not have data attributes describing the el', function () {
                     View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
                     expect( View ).to.createElWithStandardMechanism;
                 } );
@@ -102,9 +102,42 @@
 
             } );
 
+            describe( 'Template rendering by Marionette still works', function () {
+
+                var model, expectedHtml;
+
+                beforeEach( function () {
+
+                    $templateNode
+                        .attr( dataAttributes )
+                        .html( "<p>The foo property of the model is set to <%= foo %></p>" );
+
+                    model = new Backbone.Model( { foo: "bar" } );
+
+                    expectedHtml = "<p>The foo property of the model is set to bar</p>";
+                } );
+
+                it( 'when a template property is set by extending Marionette.ItemView', function () {
+                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                    view = new View( { model: model } );
+                    view.render();
+
+                    expect( view.$el.html() ).to.equal( expectedHtml );
+                } );
+
+                it( 'when a template is passed in as an option during instantiation', function () {
+                    View = Backbone.Marionette.ItemView.extend();
+                    view = new View( { model: model, template: "#template" } );
+                    view.render();
+
+                    expect( view.$el.html() ).to.equal( expectedHtml );
+                } );
+
+            } );
+
         } );
 
-        describe( 'Setting the template property.', function () {
+        describe( 'Setting the template property', function () {
 
             beforeEach( function () {
                 $templateNode.attr( dataAttributes );
