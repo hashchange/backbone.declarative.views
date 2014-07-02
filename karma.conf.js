@@ -34,6 +34,9 @@ module.exports = function(config) {
       // Component under test
       'src/backbone.declarative.views.js',
 
+      // Test helpers
+      'spec/chai-helpers/**/*.js',
+
       // Tests
       'spec/**/*.+(spec|test|tests).js'
     ],
