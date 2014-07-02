@@ -41,8 +41,7 @@
         // Check the environment
         new Assertion( Backbone ).to.be.an( 'object', "Global variable 'Backbone' not available" );
 
-        // Verify that the subject is a Backbone view and its el is initialized
-        new Assertion( subject ).to.be.instanceof( Backbone.View, "Test subject is not a Backbone.View" );
+        // Verify that the subject has an el property, and that the el is initialized
         new Assertion( subject.el ).to.be.an( 'object', "The 'el' property of the view appears to be missing" );
 
         // Examine el

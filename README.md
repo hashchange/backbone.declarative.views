@@ -82,7 +82,7 @@ There are two ways to let a view know about the template:
 - You can set the template property of the class by extending the base view class.
 - You can also pass it in as an option when you create the view.
 
-  (If you have loaded other components before Backbone.Declarative.Views, and if those components extend Backbone.View for their own view types, you cannot pass the template as an option to these types. See the [edge case, below][edge-case]).
+  (If you have loaded other components before Backbone.Declarative.Views, and if those components extend Backbone.View for their own view types, you likely cannot pass the template as an option to these types. See the [edge case, below][edge-case]).
 
 If you modify the template property in `initialize()`, it will not affect the `el` of the view. The `el` has already been set up at this point. This behaviour is a feature, not a bug, though. It is common to compile a template in `initialize`, along the lines of `this.template = _.template( $( this.template.html() ) )`, and overwrite the template property in the process. This pattern will continue to work, and not break the functionality of Backbone.Declarative.Views either.
 
@@ -92,7 +92,7 @@ If you set the `el` of the view to an existing DOM element, it won't be altered 
 
 ### Does it work with frameworks built on top of Backbone?
 
-With Marionette, it does. I can tell you with confidence because I am using it there myself. Also, unit tests.
+With [Marionette][], it does. I can tell you with confidence because I am using it there myself. Also, unit tests.
 
 With other frameworks, it should work just as well. But then again, what do I know? ;) Feedback welcome.
 
@@ -117,9 +117,7 @@ In that case, and in that case only, the view won't be able to find the template
 
 So to be on the safe side, load your view-related components after Backbone.Declarative.Views.
 
-### This is just a few lines of code, why a repo rather than a gist?
-
-Because pulling it in with Bower is more convenient if the code is in a repo. And because a gist doesn't have room for tests. This plugin attaches itself to the Backbone.View base class, so it needs proper tests, no matter how simple the code is.
+Incidentally, [Marionette][] is not affected by that edge case. Marionette views manage the template property in the right way of their own accord. You can load Marionette as you please, before or after Backbone.Declarative.Views.
 
 ## Build process and tests
 
@@ -170,6 +168,7 @@ MIT.
 Copyright (c) 2014 Michael Heim.
 
 [Backbone]: http://backbonejs.org/ "Backbone.js"
+[Marionette]: https://github.com/marionettejs/backbone.marionette#readme "Marionette: a composite application library for Backbone.js"
 [Node.js]: http://nodejs.org/ "Node.js"
 [Bower]: http://bower.io/ "Bower: a package manager for the web"
 [npm]: https://npmjs.org/ "npm: Node Packaged Modules"
