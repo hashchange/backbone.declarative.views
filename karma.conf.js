@@ -34,6 +34,9 @@ module.exports = function(config) {
       // Component under test
       'src/backbone.declarative.views.js',
 
+      // Components, used during the tests, which must be included after the component under test
+      'bower_components/marionette/lib/backbone.marionette.js',
+
       // Test helpers
       'spec/chai-helpers/**/*.js',
 
