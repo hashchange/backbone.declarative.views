@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v0.1.0
+// Backbone.Declarative.Views, v0.1.1
 // Copyright (c)2014 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -17,7 +17,7 @@
         define( ['underscore', 'backbone', 'jquery'], factory );
 
     }
-}( this, function ( _, Backbone, $ ) {
+}( this, function ( _, Backbone, jQuery ) {
     "option strict";
 
     ;( function ( Backbone, _, $ ) {
@@ -56,7 +56,6 @@
         } );
     
     }( Backbone, _, jQuery ));
-    return Backbone.Declarative.Views;
 
 } ));
 

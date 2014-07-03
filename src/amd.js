@@ -12,11 +12,10 @@
         define( ['underscore', 'backbone', 'jquery'], factory );
 
     }
-}( this, function ( _, Backbone, $ ) {
+}( this, function ( _, Backbone, jQuery ) {
     "option strict";
 
     // @include backbone.declarative.views.js
-    return Backbone.Declarative.Views;
 
 } ));
 

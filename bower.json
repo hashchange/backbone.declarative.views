@@ -1,15 +1,16 @@
 {
   "name": "backbone.declarative.views",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/hashchange/backbone.declarative.views",
   "authors": [
     "Michael Heim <heim@zeilenwechsel.de>"
   ],
-  "description": "Read the markup for the container element of a view directly from its template. Keep the tag name, class name and other attributes of `el` out of Backbone.View Javascript code.",
+  "description": "Defining the DOM element of a Backbone view right in the template.",
   "main": "dist/backbone.declarative.views.js",
   "keywords": [
     "backbone",
     "views",
+    "backbone.view",
     "el",
     "html",
     "template",
