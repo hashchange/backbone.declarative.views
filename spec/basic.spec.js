@@ -2,11 +2,13 @@
 (function () {
     "use strict";
 
-    var View, view, $templateNode, dataAttributes, attributesAsProperties;
+    var View, view, baseTemplateHtml, $templateNode, dataAttributes, attributesAsProperties;
 
     describe( 'Basic tests', function () {
 
         beforeEach( function () {
+
+            baseTemplateHtml = '<script id="template" type="text/x-template"></script>';
 
             dataAttributes = {
                 "data-tag-name": "section",
@@ -22,7 +24,7 @@
                 attributes: { lang: "en", title: "title from data attributes" }
             };
 
-            $templateNode = $( '<script id="template" type="text/x-template"></script>' ).appendTo( "body" );
+            $templateNode = $( baseTemplateHtml ).appendTo( "body" );
 
         } );
 
@@ -32,45 +34,111 @@
 
         describe( 'Basics', function () {
 
-            describe( 'A template is referenced in the template property of a view. The template exists and has data attributes describing the el.', function () {
+            describe( 'A template exists and has data attributes describing the el.', function () {
 
-                beforeEach( function () {
+                describe( 'When the template is referenced in the template property of a view', function () {
 
-                    $templateNode.attr( _.extend(
-                        dataAttributes,
-                        { "data-foo": "bar" }
-                    ) );
+                    beforeEach( function () {
 
-                    View = Backbone.View.extend( { template: "#template" } );
-                    view = new View();
+                        $templateNode.attr( _.extend(
+                            dataAttributes,
+                            { "data-foo": "bar" }
+                        ) );
 
-                } );
+                        View = Backbone.View.extend( { template: "#template" } );
+                        view = new View();
 
-                it( 'the data-tag-name attribute gets applied to the el', function () {
-                    expect( view.$el.prop( "tagName" ).toLowerCase() ).to.equal( dataAttributes["data-tag-name"] );
-                } );
-
-                it( 'the data-class-name attribute gets applied to the el', function () {
-                    expect( view.$el.attr( "class" ) ).to.equal( dataAttributes["data-class-name"] );
-                } );
-
-                it( 'the data-id attribute gets applied to the el', function () {
-                    expect( view.$el.attr( "id" ) ).to.equal( dataAttributes["data-id"] );
-                } );
-
-                it( 'the content of the data-attributes, a JSON hash, gets transformed into el attributes', function () {
-                    var attributes = JSON.parse( dataAttributes["data-attributes"] );
-                    expect( view.$el.attr( "lang" ) ).to.equal( attributes.lang );
-                    expect( view.$el.attr( "title" ) ).to.equal( attributes.title );
-                } );
-
-                it( 'other, arbitrary data attributes do not get transformed into el attributes', function () {
-                    var elAttributes = {};
-                    _.each( view.el.attributes, function ( attribute ) {
-                        if ( !_.isUndefined( attribute.nodeValue ) ) elAttributes[attribute.nodeName] = attribute.nodeValue;
                     } );
 
-                    expect( elAttributes ).not.to.have.a.property( "foo" );
+                    it( 'the data-tag-name attribute gets applied to the el', function () {
+                        expect( view.$el.prop( "tagName" ).toLowerCase() ).to.equal( dataAttributes["data-tag-name"] );
+                    } );
+
+                    it( 'the data-class-name attribute gets applied to the el', function () {
+                        expect( view.$el.attr( "class" ) ).to.equal( dataAttributes["data-class-name"] );
+                    } );
+
+                    it( 'the data-id attribute gets applied to the el', function () {
+                        expect( view.$el.attr( "id" ) ).to.equal( dataAttributes["data-id"] );
+                    } );
+
+                    it( 'the content of the data-attributes, a JSON hash, gets transformed into el attributes', function () {
+                        var attributes = JSON.parse( dataAttributes["data-attributes"] );
+                        expect( view.$el.attr( "lang" ) ).to.equal( attributes.lang );
+                        expect( view.$el.attr( "title" ) ).to.equal( attributes.title );
+                    } );
+
+                    it( 'other, arbitrary data attributes do not get transformed into el attributes', function () {
+                        var elAttributes = {};
+                        _.each( view.el.attributes, function ( attribute ) {
+                            if ( !_.isUndefined( attribute.nodeValue ) ) elAttributes[attribute.nodeName] = attribute.nodeValue;
+                        } );
+
+                        expect( elAttributes ).not.to.have.a.property( "foo" );
+                    } );
+
+                } );
+
+                describe( 'When the template HTML is stored as a string in the template property of a view', function () {
+
+                    var templateHtml;
+
+                    beforeEach( function () {
+                        dataAttributes = {
+                            "data-tag-name": "ul",
+                            "data-class-name": "listClass",
+                            "data-id": "listId",
+                            "data-attributes": '{ "lang": "en", "title": "title from data attributes" }',
+                            "data-foo": "bar"
+                        };
+
+                        // Construct the HTML string
+                        templateHtml = $( '<li class="bullet"></li>' )
+                            .attr( dataAttributes )
+                            .prop( 'outerHTML' );
+
+                        View = Backbone.View.extend( { template: templateHtml } );
+                        view = new View();
+                    } );
+
+                    it( 'the data-tag-name attribute gets applied to the el', function () {
+                        expect( view.$el.prop( "tagName" ).toLowerCase() ).to.equal( dataAttributes["data-tag-name"] );
+                    } );
+
+                    it( 'the data-class-name attribute gets applied to the el', function () {
+                        expect( view.$el.attr( "class" ) ).to.equal( dataAttributes["data-class-name"] );
+                    } );
+
+                    it( 'the data-id attribute gets applied to the el', function () {
+                        expect( view.$el.attr( "id" ) ).to.equal( dataAttributes["data-id"] );
+                    } );
+
+                    it( 'the content of the data-attributes, a JSON hash, gets transformed into el attributes', function () {
+                        var attributes = JSON.parse( dataAttributes["data-attributes"] );
+                        expect( view.$el.attr( "lang" ) ).to.equal( attributes.lang );
+                        expect( view.$el.attr( "title" ) ).to.equal( attributes.title );
+                    } );
+
+                    it( 'other, arbitrary data attributes do not get transformed into el attributes', function () {
+                        var elAttributes = {};
+                        _.each( view.el.attributes, function ( attribute ) {
+                            if ( !_.isUndefined( attribute.nodeValue ) ) elAttributes[attribute.nodeName] = attribute.nodeValue;
+                        } );
+
+                        expect( elAttributes ).not.to.have.a.property( "foo" );
+                    } );
+
+                    it( 'data attributes get picked up from the first element in the template HTML if there are multiple ones', function () {
+
+                        // Construct the HTML string
+                        templateHtml = '<p class="first" data-tag-name="article"></p><p class="second"></p>';
+
+                        View = Backbone.View.extend( { template: templateHtml } );
+                        view = new View();
+
+                        expect( view.$el.prop( "tagName" ).toLowerCase() ).to.equal( "article" );
+                    } );
+
                 } );
 
             } );

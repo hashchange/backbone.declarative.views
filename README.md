@@ -75,7 +75,7 @@ Among the properties describing the `el` of the view, one warrants a closer look
 
 (Note to self: When hand-writing JSON, remember to quote property names as well as their values. And those quotes must be double quotes.)
 
-### Setting the template property of the view
+### When to set the template property of the view
 
 There are two ways to let a view know about the template:
 
@@ -92,6 +92,20 @@ On the other hand, this is how it _won't_ work:
 
 - If you set the `el` of the view to an existing DOM element, the data attributes of a template don't get applied to it. That matches the default Backbone behaviour. Backbone ignores `el`-related view properties, like `tagName` and `className`, if `el` is set to an existing DOM element.
 
+### Setting the template property to a template string rather than a selector
+
+Yes, that works as well. The template property of a view can be set to an HTML string instead of a selector, as in the following example:
+
+```javascript
+var templateHtml = '<li class="bullet" data-tag-name="ul" data-class-name="list">template stuff</li>',
+    view = new Backbone.View( { template: templateHtml } );
+
+console.log( view.el.tagName )   // => prints "UL"
+console.log( view.el.className ) // => prints "list"
+```
+
+If the template HTML doesn't have a single top-level element, but multiple ones, then the data attributes defining the `el` must be on the first top-level element.
+
 ## Other
 
 ### Does it work with frameworks built on top of Backbone?
@@ -104,7 +118,7 @@ With other frameworks, it should work just as well. But then again, what do I kn
 
 No. You can continue to define `tagName`, `className` etc as properties of Backbone Views in your Javascript code, or pass them in as options. Backbone.Declarative.Views just gives you yet another way to declare them - and quite possibly a superior one.
 
-Equally, you can omit the `template` property, or assign a value to it which is not a selector. Obviously, the `el` of the view won't be set up from data attributes this way, but rest assured that nothing will break.
+Equally, you can omit the `template` property, or assign a value to it which is a function, rather than a selector. Obviously, the `el` of the view won't be set up from data attributes this way, but rest assured that nothing will break.
 
 ### Is it available to components which are loaded before it?
 
