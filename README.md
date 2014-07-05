@@ -106,6 +106,14 @@ console.log( view.el.className ) // => prints "list"
 
 If the template HTML doesn't have a single top-level element, but multiple ones, then the data attributes defining the `el` must be on the first top-level element.
 
+## Performance: Reuse the $template
+
+Looking up DOM elements is relatively slow. Backbone.Declarative.Views pulls the `el` data from the template script tag in the DOM, so it makes sense to cache the DOM node - or more specifically, the jQuery object representing it. You can access the cached element and save yourself future look-ups.
+
+You'll find the cached template in the `backboneDeclarativeViews.$template` property of a view. The property is available by the time `initialize()` is run, so you can access it there. If the template has not been specified by a selector, or if it did not exist, the `$template` property is undefined.
+
+If you handle multiple templates, please note that the template cache is set once and for all when the view is instantiated, and not updated if you change templates later on. So the cache always holds the template node which was accessed first.
+
 ## Other
 
 ### Does it work with frameworks built on top of Backbone?

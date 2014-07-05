@@ -293,6 +293,86 @@
 
         } );
 
+        describe( 'Cache access', function () {
+
+            describe( 'The backboneDeclarativeViews "namespace" property', function () {
+
+                beforeEach( function () {
+                    View = Backbone.View.extend();
+                    view = new View();
+                } );
+
+                it( 'is available and holds an object even if no template is specified', function () {
+                    expect( view ).to.have.a.property( "backboneDeclarativeViews" );
+                    expect( view.backboneDeclarativeViews ).to.be.an( "object" );
+                } );
+
+                it( 'is independent of the same property on another view', function () {
+                    var otherView = new View();
+                    expect( otherView.backboneDeclarativeViews ).not.to.equal( view.backboneDeclarativeViews );
+                } );
+
+            } );
+
+            describe( 'The template cache', function () {
+
+                beforeEach( function () {
+                    View = Backbone.View.extend();
+                } );
+
+                it( 'is undefined if the template is not specified', function () {
+                    view = new View();
+                    expect( view.backboneDeclarativeViews.$template ).to.be.undefined;
+                } );
+
+                it( 'is undefined if the template is specified, but does not exist', function () {
+                    view = new View( { template: "#nonexistent" } );
+                    expect( view.backboneDeclarativeViews.$template ).to.be.undefined;
+                } );
+
+                it( 'is undefined if the template is specified, but is a function rather than a selector', function () {
+                    View = Backbone.View.extend( { template: function () {
+                        return "<article></article>";
+                    } } );
+                    view = new View();
+
+                    expect( view.backboneDeclarativeViews.$template ).to.be.undefined;
+                } );
+
+                it( 'stores the generated template node, in jQuery form, if the template is specified, but is a template string rather than a selector', function () {
+                    // Construct the HTML string
+                    var templateHtml = $( baseTemplateHtml )
+                        .attr( dataAttributes )
+                        .prop( 'outerHTML' );
+
+                    view = new View( { template: templateHtml } );
+
+                    expect( view.backboneDeclarativeViews.$template ).to.be.an.instanceOf( jQuery );
+                    expect( view.backboneDeclarativeViews.$template.prop( 'outerHTML' ) ).to.equal( templateHtml );
+                } );
+
+                it( 'stores the template node, in jQuery form, if a valid template is specified', function () {
+                    view = new View( { template: "#template" } );
+                    expect( view.backboneDeclarativeViews.$template ).to.be.an.instanceOf( jQuery );
+                    expect( view.backboneDeclarativeViews.$template.get( 0 ) ).to.equal( $templateNode.get( 0 ) );
+                } );
+
+                it( 'is already available in the initialize method of the view', function () {
+                    View = Backbone.View.extend( {
+                        template: "#template",
+                        initialize: function () {
+                            this.$template = this.backboneDeclarativeViews.$template;
+                        }
+                    } );
+                    view = new View();
+
+                    expect( view.$template ).to.be.an.instanceOf( jQuery );
+                    expect( view.$template.get( 0 ) ).to.equal( $templateNode.get( 0 ) );
+                } );
+            } );
+
+        } );
+
     } );
 
 })();
