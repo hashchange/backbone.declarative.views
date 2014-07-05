@@ -1,4 +1,4 @@
-;( function ( Backbone, _, $ ) {
+;( function ( Backbone, _ ) {
     "use strict";
 
     var originalConstructor = Backbone.View;
@@ -33,4 +33,4 @@
 
     } );
 
-}( Backbone, _, jQuery ));
+}( Backbone, _ ));

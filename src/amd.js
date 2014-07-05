@@ -3,16 +3,15 @@
 
         var underscore = require( 'underscore' );
         var backbone = require( 'backbone' );
-        var jquery = require( 'jquery' );
 
-        module.exports = factory( underscore, backbone, jquery );
+        module.exports = factory( underscore, backbone );
 
     } else if ( typeof define === 'function' && define.amd ) {
 
-        define( ['underscore', 'backbone', 'jquery'], factory );
+        define( ['underscore', 'backbone'], factory );
 
     }
-}( this, function ( _, Backbone, jQuery ) {
+}( this, function ( _, Backbone ) {
     "option strict";
 
     // @include backbone.declarative.views.js

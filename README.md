@@ -80,15 +80,15 @@ Among the properties describing the `el` of the view, one warrants a closer look
 There are two ways to let a view know about the template:
 
 - You can set the template property of the class with `extend()`.
-- You can also pass it in as an option when you create the view.
+- You can also pass the template in as an option when you create the view.
 
   (If you have loaded other components before Backbone.Declarative.Views, and if those components extend Backbone.View for their own view types, you likely cannot pass the template as an option to these types. See the [edge case, below][edge-case]).
 
 On the other hand, this is how it _won't_ work:
 
-- If you modify the template property in `initialize()`, it will not affect the `el` of the view. The `el` has already been set up at this point. So you can't set the template property to a selector there.
+- If you modify the template property in `initialize()`, it will not affect the `el` of the view. The `el` has already been set up at this point. So you can't set the template property to a selector in `initialize`.
 
-  This behaviour is a feature, not a bug, though. It is common to compile a template in `initialize`, along the lines of `this.template = _.template( $( this.template ).html() )`, and overwrite the template property in the process. This pattern will continue to work, and not break the functionality of Backbone.Declarative.Views either.
+  This behaviour is a feature, not a bug. It is common to compile a template in `initialize`, along the lines of `this.template = _.template( $( this.template ).html() )`, and overwrite the template property in the process. This pattern will continue to work, and it won't break the functionality of Backbone.Declarative.Views, either.
 
 - If you set the `el` of the view to an existing DOM element, the data attributes of a template don't get applied to it. That matches the default Backbone behaviour. Backbone ignores `el`-related view properties, like `tagName` and `className`, if `el` is set to an existing DOM element.
 
@@ -108,15 +108,15 @@ Equally, you can omit the `template` property, or assign a value to it which is 
 
 ### Is it available to components which are loaded before it?
 
-Mostly, yes. It depends on how you set up your views. If you define the template property with `extend()`, before instantiating the view it, things will just work.
+Mostly, yes. It depends on how you set up your views. If you define the template property with `extend()`, before instantiating the view, things will just work.
 
 But you can run into an edge case if you
 
 - load a component which creates its own Backbone.View subtypes
 - load the component too early, ie before Backbone.Declarative.Views
-- pass in the template selector as an option while instantiating a view.
+- while instantiating a view which is supplied by the component, pass it a template selector as an option.
 
-In that case, and in that case only, the view fails to apply the data attributes of the template to the `el` of the view.
+In that case, and in that case only, the data attributes of the template won't get applied to the `el` of the view.
 
 So to be on the safe side, load your view-related components after Backbone.Declarative.Views.
 
@@ -126,7 +126,7 @@ Incidentally, [Marionette][] is not affected by that edge case. You can load Mar
 
 On the face of it, using data attributes on one tag to describe another tag seems nonstandard and indirect. You may wonder why the markup for `el` can't just be part of the HTML in the template.
 
-As it turns out, this kind of approach is fraught with problems. See the [related Backbone issue][backbone-issue-546] for a discussion. [@tbranyen lists][comment-tbranyen] some of the difficulties. Also check out the [comment by @jashkenas][comment-jashkenas].
+As it turns out, that kind of approach is fraught with problems. See the [related Backbone issue][backbone-issue-546] for a discussion. [@tbranyen lists][comment-tbranyen] some of the difficulties. Also check out the [comment by @jashkenas][comment-jashkenas].
 
 ## Build process and tests
 
