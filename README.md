@@ -144,6 +144,18 @@ So to be on the safe side, load your view-related components after Backbone.Decl
 
 Incidentally, [Marionette][] is not affected by that edge case. You can load Marionette as you please, before or after Backbone.Declarative.Views.
 
+### Does it work for views which just compose other views and don't have markup of their own?
+
+An example of such a view is the [Marionette.CollectionView][] type. Its content is entirely made up of iterated child views. Its own markup consists of nothing more than the containing `el`.
+
+And yes, that `el` can be defined with a template, so the properties of `el` can be kept out of the Javascript. Only the data attributes matter for that template. The content inside the template tag will simply be ignored.
+
+```html
+<script id="collection-view-template" type="text/x-template" data-tag-name="ul" data-class-name="itemlist">
+    <!-- This is a template for a collection view, hence no content. -->
+</script>
+```
+
 ### Why data attributes?
 
 On the face of it, using data attributes on one tag to describe another tag seems nonstandard and indirect. You may wonder why the markup for `el` can't just be part of the HTML in the template.
@@ -215,6 +227,7 @@ Copyright (c) 2014 Michael Heim.
 [dist-amd-dev]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/amd/backbone.declarative.views.js "backbone.declarative.views.js, AMD build"
 [dist-amd-prod]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/amd/backbone.declarative.views.min.js "backbone.declarative.views.min.js, AMD build"
 
+[Marionette.CollectionView]: https://github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.collectionview.md "Marionette.CollectionView"
 [backbone-el-properties]: http://backbonejs.org/#View-el "Backbone.View: el"
 [backbone-issue-546]: https://github.com/jashkenas/backbone/issues/546 "Backbone issue: Don't wrap views if using templates"
 [comment-tbranyen]: https://github.com/jashkenas/backbone/issues/546#issuecomment-16722262
