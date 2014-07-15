@@ -1,6 +1,6 @@
 {
   "name": "backbone.declarative.views",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "homepage": "https://github.com/hashchange/backbone.declarative.views",
   "authors": [
     "Michael Heim <heim@zeilenwechsel.de>"
@@ -17,7 +17,8 @@
     "tag",
     "tagName",
     "className",
-    "attributes"
+    "attributes",
+    "marionette"
   ],
   "license": "MIT",
   "ignore": [
@@ -41,8 +42,8 @@
     "marionette": "^1.1.0 <1.9.0 || ^2.0.0"
   },
   "dependencies": {
-    "underscore": "^1.5.0 <1.7.0",
     "backbone": "^1.0.0 <1.2.0",
-    "jquery": "^1.5.0 || ^2.0.0 <2.2.0"
+    "jquery": "^1.5.0 || ^2.0.0 <2.2.0",
+    "underscore": "^1.5.0 <1.7.0"
   }
 }

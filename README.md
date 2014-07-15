@@ -10,7 +10,7 @@ Backbone.Declarative.Views works entirely behind the scenes and does not expose 
 
 If you use other components which extend Backbone.View, load those components after Backbone.Declarative.Views. (Even if you load them too early, Backbone.Declarative.Views does its job as intended. But you might have to deal with a [corner case][edge-case].)
 
-The stable version of Backbone.Declarative.Views is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install backbone.declarative.views`.
+The stable version of Backbone.Declarative.Views is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install backbone.declarative.views`. With npm, it is `npm install backbone.declarative.views`.
 
 Backbone.Declarative.Views augments the Backbone.View base type, so its functionality will be available in every view throughout your code.
 
