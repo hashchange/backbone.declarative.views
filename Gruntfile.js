@@ -90,7 +90,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      component: 'src/backbone.declarative.views.js'
+      components: 'src/**/*.js'
     },
 
     plato: {
