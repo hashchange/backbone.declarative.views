@@ -1,23 +1,28 @@
-// Backbone.Declarative.Views, v1.0.0
+// Backbone.Declarative.Views, v1.0.1
 // Copyright (c)2014 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
 
 ;( function ( root, factory ) {
+    "use strict";
+
     if ( typeof exports === 'object' ) {
 
-        var underscore = require( 'underscore' );
-        var backbone = require( 'backbone' );
-
-        module.exports = factory( underscore, backbone );
+        module.exports = factory(
+            require( 'underscore' ),
+            require( 'backbone' )
+        );
 
     } else if ( typeof define === 'function' && define.amd ) {
 
-        define( ['underscore', 'backbone'], factory );
+        define( [
+            'underscore',
+            'backbone'
+        ], factory );
 
     }
 }( this, function ( _, Backbone ) {
-    "option strict";
+    "use strict";
 
     ;( function ( Backbone, _ ) {
         "use strict";
