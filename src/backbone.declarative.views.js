@@ -51,8 +51,8 @@
     Backbone.View = Backbone.View.extend( {
 
         constructor: function ( options ) {
-            options || (options = {});
-            _.extend( this, _.pick( options, "template" ), { backboneDeclarativeViews: {} } );
+            if ( options && options.template !== undefined ) this.template = options.template;
+            this.backboneDeclarativeViews = {};
             originalConstructor.apply( this, arguments );
         }
 

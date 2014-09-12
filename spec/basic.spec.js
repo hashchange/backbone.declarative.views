@@ -201,6 +201,15 @@
             } );
 
             describe( 'The view has a template property, and it is a selector initially.', function () {
+                var $altTemplateNode;
+
+                beforeEach( function () {
+                    $altTemplateNode = $( baseTemplateHtml ).attr( "id", "altTemplate" ).appendTo( "body" );
+                } );
+
+                afterEach( function () {
+                    $altTemplateNode.remove();
+                } );
 
                 it( 'When the selector is overwritten in initialize, the template data attributes still get applied to the el of the view', function () {
                     View = Backbone.View.extend( {
@@ -213,6 +222,32 @@
 
                     expect( view ).to.have.exactElProperties( attributesAsProperties );
                 } );
+
+                it( 'When another template selector is passed in as an option, it overrides the template property. The data attributes of the option template get applied to the el of the view', function () {
+                    var altDataAttributes = { "data-tag-name": "p", "data-id": "altDataId" },
+                        altAttributesAsProperties = { "data-tag-name": "p", id: "altDataId" };
+
+                    $altTemplateNode.attr( altDataAttributes );
+
+                    View = Backbone.View.extend( { template: "#template" } );
+                    view = new View( { template: "#altTemplate" } );
+
+                    expect( view ).to.have.exactElProperties( altAttributesAsProperties );
+                } );
+
+                it( 'When another template selector is passed in as an option, but it has an undefined value, it is ignored. The data attributes of the original template still get applied to the el of the view', function () {
+                    // This is different from default Backbone behaviour, which treats existing, undefined options as
+                    // an intended setting, and applies them. Undefined option values override class properties in
+                    // Backbone.
+                    //
+                    // Instead, Backbone.Declarative.Views emulates the far more sensible Marionette behaviour, which
+                    // ignores options with undefined value.
+                    View = Backbone.View.extend( { template: "#template" } );
+                    view = new View( { template: undefined } );
+
+                    expect( view ).to.have.exactElProperties( attributesAsProperties );
+                } );
+
             } );
 
         } );

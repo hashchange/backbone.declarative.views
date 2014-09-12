@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v1.0.1
+// Backbone.Declarative.Views, v1.0.2
 // Copyright (c)2014 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -77,8 +77,8 @@
         Backbone.View = Backbone.View.extend( {
     
             constructor: function ( options ) {
-                options || (options = {});
-                _.extend( this, _.pick( options, "template" ), { backboneDeclarativeViews: {} } );
+                if ( options && options.template !== undefined ) this.template = options.template;
+                this.backboneDeclarativeViews = {};
                 originalConstructor.apply( this, arguments );
             }
     
