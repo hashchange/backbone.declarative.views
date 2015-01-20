@@ -208,7 +208,7 @@ New test files in the `spec` directory are picked up automatically, no need to e
 
 MIT.
 
-Copyright (c) 2014 Michael Heim.
+Copyright (c) 2014, 2015 Michael Heim.
 
 [Backbone]: http://backbonejs.org/ "Backbone.js"
 [Marionette]: https://github.com/marionettejs/backbone.marionette#readme "Marionette: a composite application library for Backbone.js"
