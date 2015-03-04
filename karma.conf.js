@@ -29,8 +29,6 @@ module.exports = function(config) {
       'bower_components/underscore/underscore.js',
       'bower_components/backbone/backbone.js',
 
-      'lib-other/**/*.js',
-
       // Component under test
       'src/backbone.declarative.views.js',
 
@@ -52,8 +50,8 @@ module.exports = function(config) {
 
 
     // test results reporter to use
-    // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-    reporters: ['mocha'],
+    // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage', 'mocha'
+    reporters: ['progress'],
 
 
     // web server port

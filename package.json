@@ -4,8 +4,8 @@
   "homepage": "https://github.com/hashchange/backbone.declarative.views",
   "bugs": "https://github.com/hashchange/backbone.declarative.views/issues",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/hashchange/backbone.declarative.views.git"
+    "type": "git",
+    "url": "https://github.com/hashchange/backbone.declarative.views.git"
   },
   "author": "Michael Heim <heim@zeilenwechsel.de> (http://www.zeilenwechsel.de/)",
   "description": "Defining the DOM element of a Backbone view right in the template.",
@@ -41,17 +41,14 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-karma": "~0.8.3",
     "grunt-mocha": "~0.4.11",
-    "grunt-plato": "~1.0.0",
     "grunt-preprocess": "~4.0.0",
     "grunt-sails-linker": "~0.9.5",
     "grunt-text-replace": "~0.3.12",
     "karma": "~0.12.16",
     "karma-chai-plugins": "~0.2.1",
     "karma-chrome-launcher": "~0.1.4",
-    "karma-coffee-preprocessor": "~0.2.1",
     "karma-firefox-launcher": "~0.1.3",
     "karma-html2js-preprocessor": "~0.1.0",
-    "karma-jasmine": "~0.1.5",
     "karma-mocha": "~0.1.4",
     "karma-mocha-reporter": "~0.2.5",
     "karma-phantomjs-launcher": "~0.1.4",

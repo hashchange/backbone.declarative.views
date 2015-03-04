@@ -77,7 +77,7 @@ module.exports = function(grunt) {
         port: KARMA_PORT
       },
       test: {
-        reporters: ['mocha'],
+        reporters: ['progress'],
         singleRun: true
       },
       build: {
@@ -91,16 +91,6 @@ module.exports = function(grunt) {
         jshintrc: '.jshintrc'
       },
       components: 'src/**/*.js'
-    },
-
-    plato: {
-      component: {
-        src: 'src/*.js',
-        dest: 'reports',
-        options: {
-          jshint: grunt.file.readJSON('.jshintrc')
-        }
-      }
     },
 
     'sails-linker': {
@@ -208,7 +198,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-plato');
   grunt.loadNpmTasks('grunt-preprocess');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-jshint');
