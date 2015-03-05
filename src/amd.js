@@ -20,6 +20,7 @@
     "use strict";
 
     // @include backbone.declarative.views.js
+    return Backbone.DeclarativeViews;
 
 } ));
 

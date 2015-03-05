@@ -30,9 +30,19 @@
             $templateNode.remove();
         } );
 
+        after( function () {
+            Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+        } );
+
         describe( 'Basics', function () {
 
             describe( 'A template is referenced in the template property of a view. The template exists and has data attributes describing the el.', function () {
+
+                var cleanup = function () {
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+                };
+
+                before ( cleanup );
 
                 beforeEach( function () {
 
@@ -45,6 +55,8 @@
                     view = new View();
 
                 } );
+
+                after( cleanup );
 
                 it( 'the data-tag-name attribute gets applied to the el', function () {
                     expect( view.$el.prop( "tagName" ).toLowerCase() ).to.equal( dataAttributes["data-tag-name"] );
@@ -77,6 +89,14 @@
 
             describe( 'Backbone default behaviour remains unchanged', function () {
 
+                var cleanup = function () {
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#doesNotExist" );
+                };
+
+                before ( cleanup );
+
+                after( cleanup );
+
                 it( 'when the view does not reference a template', function () {
                     View = Backbone.Marionette.ItemView.extend();
                     expect( View ).to.createElWithStandardMechanism;
@@ -104,7 +124,12 @@
 
             describe( 'Template rendering by Marionette still works', function () {
 
-                var model, expectedHtml;
+                var model, expectedHtml,
+                    cleanup = function () {
+                        Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+                    };
+
+                before ( cleanup );
 
                 beforeEach( function () {
 
@@ -116,6 +141,8 @@
 
                     expectedHtml = "<p>The foo property of the model is set to bar</p>";
                 } );
+
+                after( cleanup );
 
                 it( 'when a template property is set by extending Marionette.ItemView', function () {
                     View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
@@ -139,9 +166,17 @@
 
         describe( 'Setting the template property', function () {
 
+            var cleanup = function () {
+                Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+            };
+
+            before ( cleanup );
+
             beforeEach( function () {
                 $templateNode.attr( dataAttributes );
             } );
+
+            after( cleanup );
 
             describe( 'The view does not have a template property initially, but it gets created during instantiation.', function () {
 
@@ -184,9 +219,17 @@
 
         describe( 'Overrides', function () {
 
+            var cleanup = function () {
+                Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+            };
+
+            before ( cleanup );
+
             beforeEach( function () {
                 $templateNode.attr( dataAttributes );
             } );
+
+            after( cleanup );
 
             describe( 'Properties of el, defined in the template with data attributes, are overridden', function () {
 
@@ -216,11 +259,18 @@
 
         describe( 'View attached to an el already existing in the DOM', function () {
 
-            var $existingEl;
+            var $existingEl,
+                cleanup = function () {
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#doesNotExist" );
+                };
+
+            before ( cleanup );
 
             beforeEach( function () {
                 $existingEl = $( '<article id="preExisting" class="container inDom"></article>' ).appendTo( "body" );
             } );
+
+            after( cleanup );
 
             describe( 'Backbone default behaviour remains unchanged', function () {
 

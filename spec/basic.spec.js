@@ -32,11 +32,21 @@
             $templateNode.remove();
         } );
 
+        after( function () {
+            Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+        } );
+
         describe( 'Basics', function () {
 
             describe( 'A template exists and has data attributes describing the el.', function () {
 
                 describe( 'When the template is referenced in the template property of a view', function () {
+
+                    var cleanup = function () {
+                        Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+                    };
+
+                    before ( cleanup );
 
                     beforeEach( function () {
 
@@ -49,6 +59,8 @@
                         view = new View();
 
                     } );
+
+                    after( cleanup );
 
                     it( 'the data-tag-name attribute gets applied to the el', function () {
                         expect( view.$el.prop( "tagName" ).toLowerCase() ).to.equal( dataAttributes["data-tag-name"] );
@@ -145,6 +157,14 @@
 
             describe( 'Backbone default behaviour remains unchanged', function () {
 
+                var cleanup = function () {
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#doesNotExist" );
+                };
+
+                before ( cleanup );
+
+                after( cleanup );
+
                 it( 'when the view does not reference a template', function () {
                     View = Backbone.View.extend();
                     expect( View ).to.createElWithStandardMechanism;
@@ -157,6 +177,11 @@
 
                 it( 'when the view references a template which does not exist', function () {
                     View = Backbone.View.extend( { template: "#doesNotExist" } );
+                    expect( View ).to.createElWithStandardMechanism;
+                } );
+
+                it( 'when the view references a template which is a string that jQuery cannot process', function () {
+                    View = Backbone.View.extend( { template: ">|$" } );
                     expect( View ).to.createElWithStandardMechanism;
                 } );
 
@@ -174,9 +199,17 @@
 
         describe( 'Setting the template property', function () {
 
+            var cleanup = function () {
+                Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+            };
+
+            before ( cleanup );
+
             beforeEach( function () {
                 $templateNode.attr( dataAttributes );
             } );
+
+            after( cleanup );
 
             describe( 'The view does not have a template property initially, but it gets created during instantiation.', function () {
 
@@ -201,7 +234,13 @@
             } );
 
             describe( 'The view has a template property, and it is a selector initially.', function () {
-                var $altTemplateNode;
+
+                var $altTemplateNode,
+                    cleanup = function () {
+                        Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#altTemplate" );
+                    };
+
+                before( cleanup );
 
                 beforeEach( function () {
                     $altTemplateNode = $( baseTemplateHtml ).attr( "id", "altTemplate" ).appendTo( "body" );
@@ -210,6 +249,8 @@
                 afterEach( function () {
                     $altTemplateNode.remove();
                 } );
+
+                after( cleanup );
 
                 it( 'When the selector is overwritten in initialize, the template data attributes still get applied to the el of the view', function () {
                     View = Backbone.View.extend( {
@@ -226,6 +267,10 @@
                 it( 'When another template selector is passed in as an option, it overrides the template property. The data attributes of the option template get applied to the el of the view', function () {
                     var altDataAttributes = { "data-tag-name": "p", "data-id": "altDataId" },
                         altAttributesAsProperties = { "data-tag-name": "p", id: "altDataId" };
+
+                    // Clear the cache for the #altTemplate first, making sure the test-specific modifications to the
+                    // node are picked up
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#altTemplate" );
 
                     $altTemplateNode.attr( altDataAttributes );
 
@@ -254,9 +299,17 @@
 
         describe( 'Overrides', function () {
 
+            var cleanup = function () {
+                Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+            };
+
+            before ( cleanup );
+
             beforeEach( function () {
                 $templateNode.attr( dataAttributes );
             } );
+
+            after( cleanup );
 
             describe( 'Properties of el, defined in the template with data attributes, are overridden', function () {
 
@@ -286,11 +339,18 @@
 
         describe( 'View attached to an el already existing in the DOM', function () {
 
-            var $existingEl;
+            var $existingEl,
+                cleanup = function () {
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#doesNotExist" );
+                };
+
+            before( cleanup );
 
             beforeEach( function () {
                 $existingEl = $( '<article id="preExisting" class="container inDom"></article>' ).appendTo( "body" );
             } );
+
+            after( cleanup );
 
             describe( 'Backbone default behaviour remains unchanged', function () {
 
@@ -324,86 +384,6 @@
                     expect( View ).to.useExistingElWithoutAlteringIt( $existingEl );
                 } );
 
-            } );
-
-        } );
-
-        describe( 'Cache access', function () {
-
-            describe( 'The backboneDeclarativeViews "namespace" property', function () {
-
-                beforeEach( function () {
-                    View = Backbone.View.extend();
-                    view = new View();
-                } );
-
-                it( 'is available and holds an object even if no template is specified', function () {
-                    expect( view ).to.have.a.property( "backboneDeclarativeViews" );
-                    expect( view.backboneDeclarativeViews ).to.be.an( "object" );
-                } );
-
-                it( 'is independent of the same property on another view', function () {
-                    var otherView = new View();
-                    expect( otherView.backboneDeclarativeViews ).not.to.equal( view.backboneDeclarativeViews );
-                } );
-
-            } );
-
-            describe( 'The template cache', function () {
-
-                beforeEach( function () {
-                    View = Backbone.View.extend();
-                } );
-
-                it( 'is undefined if the template is not specified', function () {
-                    view = new View();
-                    expect( view.backboneDeclarativeViews.$template ).to.be.undefined;
-                } );
-
-                it( 'is undefined if the template is specified, but does not exist', function () {
-                    view = new View( { template: "#nonexistent" } );
-                    expect( view.backboneDeclarativeViews.$template ).to.be.undefined;
-                } );
-
-                it( 'is undefined if the template is specified, but is a function rather than a selector', function () {
-                    View = Backbone.View.extend( { template: function () {
-                        return "<article></article>";
-                    } } );
-                    view = new View();
-
-                    expect( view.backboneDeclarativeViews.$template ).to.be.undefined;
-                } );
-
-                it( 'stores the generated template node, in jQuery form, if the template is specified, but is a template string rather than a selector', function () {
-                    // Construct the HTML string
-                    var templateHtml = $( baseTemplateHtml )
-                        .attr( dataAttributes )
-                        .prop( 'outerHTML' );
-
-                    view = new View( { template: templateHtml } );
-
-                    expect( view.backboneDeclarativeViews.$template ).to.be.an.instanceOf( jQuery );
-                    expect( view.backboneDeclarativeViews.$template.prop( 'outerHTML' ) ).to.equal( templateHtml );
-                } );
-
-                it( 'stores the template node, in jQuery form, if a valid template is specified', function () {
-                    view = new View( { template: "#template" } );
-                    expect( view.backboneDeclarativeViews.$template ).to.be.an.instanceOf( jQuery );
-                    expect( view.backboneDeclarativeViews.$template.get( 0 ) ).to.equal( $templateNode.get( 0 ) );
-                } );
-
-                it( 'is already available in the initialize method of the view', function () {
-                    View = Backbone.View.extend( {
-                        template: "#template",
-                        initialize: function () {
-                            this.$template = this.backboneDeclarativeViews.$template;
-                        }
-                    } );
-                    view = new View();
-
-                    expect( view.$template ).to.be.an.instanceOf( jQuery );
-                    expect( view.$template.get( 0 ) ).to.equal( $templateNode.get( 0 ) );
-                } );
             } );
 
         } );
