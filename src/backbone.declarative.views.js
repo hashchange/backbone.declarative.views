@@ -60,16 +60,22 @@
      *
      * Return values are the same as in getViewTemplateData. See there for details.
      *
+     * If there is no cacheable template data, the hash { valid: false } is returned.
+     *
      * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
      * @returns {CachedTemplateData|Uncacheable}
      */
     function getTemplateData ( templateProp ) {
         var data;
 
-        if ( !_.isString( templateProp ) ) throw new Error( "Invalid argument: template property is not a string. For cache access, the template property has to be a string." );
+        if ( _.isString( templateProp ) ) {
 
-        data = templateCache[ _getCacheId( templateProp ) ];
-        if ( ! data ) data = _createTemplateCache( templateProp );
+            data = templateCache[ _getCacheId( templateProp ) ];
+            if ( ! data ) data = _createTemplateCache( templateProp );
+
+        } else {
+            data = { valid: false };
+        }
 
         return data;
     }
@@ -157,11 +163,11 @@
         // template property.
         if ( arguments.length > 1 ) {
             _.each( arguments, function ( singleProp ) { clearCachedTemplate( singleProp ); } );
-        } else if ( _.isArguments( templateProp ) ) {
+        } else if ( _.isArray( templateProp ) ) {
             _.each( templateProp, function ( singleProp ) { clearCachedTemplate( singleProp ); } );
         }
 
-        if ( ! templateProp ) throw new Error( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view" );
+        if ( ! templateProp ) throw new Error( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
 
         // Delete a cache entry for an individual template property. It must be a string - non-string arguments are
         // quietly ignored.
@@ -209,7 +215,8 @@
 
         if ( $template.length ) {
 
-            data = $template.data();
+            // Read the el-related data attributes of the template.
+            data = _getDataAttributes( $template ) ;
 
             templateCache[cacheId] = {
                 html: $template.html(),
@@ -250,6 +257,44 @@
      */
     function _getCacheId ( templateProp ) {
         return typeof location !== "undefined" ? location.host + location.pathname + templateProp : templateProp;
+    }
+
+    /**
+     * Returns the data attributes of an element.
+     *
+     * Makes sure that the data attributes describing a Backbone el are read from the DOM, circumventing a potentially
+     * stale jQuery cache. The jQuery cache is updated in the process (but for these attributes only).
+     *
+     * That is necessary because jQuery keeps its own cache of data attributes. There is no API to clear or circumvent
+     * that cache. $.fn.removeData() and $.removeData() set the cached values to undefined, and undefined is returned on
+     * next access - not the actual values in the DOM.
+     *
+     * So here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
+     * picked up.
+     *
+     * @param   {jQuery} $elem
+     * @returns {Object}
+     */
+    function _getDataAttributes ( $elem ) {
+
+        if ( $.hasData( $elem[0] ) ) {
+
+            // A jQuery data cache exists. Update it for the el properties.
+            $elem.data( {
+                tagName: $elem.attr( "data-tag-name" ),
+                className: $elem.attr( "data-class-name" ),
+                id: $elem.attr( "data-id" )
+            } );
+
+            try {
+                $elem.data( "attributes", $.parseJSON( $elem.attr( "data-attributes" ) ) );
+            } catch ( err ) {
+                $elem.removeData( "attributes" );
+            }
+
+        }
+
+        return $elem.data();
     }
 
 

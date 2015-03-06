@@ -32,11 +32,18 @@
      */
     Assertion.addMethod( 'elProperties', function ( elProperties ) {
         var tagName, className, id,
+            validKeys = [ "tagName", "className", "id", "attributes" ],
             subject = this._obj,
             $el = subject.$el;
 
         // Check the test parameter
-        new Assertion( elProperties ).to.be.an( 'object', "Assertion called with wrong parameter, must be a hash" );
+        new Assertion( elProperties ).to.be.an( 'object', "Invalid argument for the expected value, must be a hash" );
+
+        // Verify that at least one actual el property has been passed in
+        new Assertion( _.size( _.pick( elProperties, validKeys ) ) ).to.have.be.above( 0, "Invalid argument for the expected value. The hash must contain at least one property describing an 'el' (tagName, className, id, attributes), but it doesn't\n(Noise, ignore)" );
+
+        // Verify that only actual el properties have been passed in
+        new Assertion( _.size( _.omit( elProperties, validKeys ) ) ).to.equal( 0, "Invalid argument for the expected value. The hash must only contain properties which describe an 'el' (tagName, className, id, attributes). It contains the following invalid properties: " + _.keys( _.omit( elProperties, validKeys ) ).join( ", " ) + "\n(Noise, ignore)" );
 
         // Check the environment
         new Assertion( Backbone ).to.be.an( 'object', "Global variable 'Backbone' not available" );

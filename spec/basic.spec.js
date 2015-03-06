@@ -17,6 +17,8 @@
                 "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
             };
 
+            // Equivalent of the data attributes as a hash of el properties. Written out for clarity, but could simply
+            // have been transformed with the test helper function dataAttributesToProperties( dataAttributes ).
             attributesAsProperties = {
                 tagName: "section",
                 className: "dataClass",
@@ -266,7 +268,7 @@
 
                 it( 'When another template selector is passed in as an option, it overrides the template property. The data attributes of the option template get applied to the el of the view', function () {
                     var altDataAttributes = { "data-tag-name": "p", "data-id": "altDataId" },
-                        altAttributesAsProperties = { "data-tag-name": "p", id: "altDataId" };
+                        expected = { tagName: "p", id: "altDataId" };
 
                     // Clear the cache for the #altTemplate first, making sure the test-specific modifications to the
                     // node are picked up
@@ -277,7 +279,7 @@
                     View = Backbone.View.extend( { template: "#template" } );
                     view = new View( { template: "#altTemplate" } );
 
-                    expect( view ).to.have.exactElProperties( altAttributesAsProperties );
+                    expect( view ).to.have.exactElProperties( expected );
                 } );
 
                 it( 'When another template selector is passed in as an option, but it has an undefined value, it is ignored. The data attributes of the original template still get applied to the el of the view', function () {

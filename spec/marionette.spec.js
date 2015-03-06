@@ -15,6 +15,8 @@
                 "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
             };
 
+            // Equivalent of the data attributes as a hash of el properties. Written out for clarity, but could simply
+            // have been transformed with the test helper function dataAttributesToProperties( dataAttributes ).
             attributesAsProperties = {
                 tagName: "section",
                 className: "dataClass",
