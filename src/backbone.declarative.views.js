@@ -163,7 +163,7 @@
         // template property.
         if ( arguments.length > 1 ) {
             _.each( arguments, function ( singleProp ) { clearCachedTemplate( singleProp ); } );
-        } else if ( _.isArray( templateProp ) ) {
+        } else if ( _.isArray( templateProp ) || _.isArguments( templateProp ) ) {
             _.each( templateProp, function ( singleProp ) { clearCachedTemplate( singleProp ); } );
         }
 

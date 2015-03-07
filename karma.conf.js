@@ -29,11 +29,14 @@ module.exports = function(config) {
       'bower_components/underscore/underscore.js',
       'bower_components/backbone/backbone.js',
 
-      // Component under test
+      // Component under test (main)
       'src/backbone.declarative.views.js',
 
       // Components, used during the tests, which must be included after the component under test
       'bower_components/marionette/lib/backbone.marionette.js',
+
+      // Secondary component under test - requires Marionette to be loaded
+      'src/marionette.declarativeviews.integration.js',
 
       // Test helpers
       'spec/chai-helpers/**/*.js',
