@@ -2,6 +2,9 @@
 (function () {
     "use strict";
 
+    // These tests require that full Marionette integration is active, ie that marionette.declarativeviews.integration.js
+    // is loaded.
+
     describe( 'Integrated cache access of Marionette and Backbone.Declarative.Views', function () {
 
         var View, baseTemplateHtml, $templateNode, dataAttributes, attributesAsProperties;
@@ -40,6 +43,14 @@
         after( function () {
             Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
             Backbone.Marionette.TemplateCache.clear( "#template" );
+        } );
+
+        describe( 'Full Marionette integration is signalled by the _marionetteIntegration flag', function () {
+
+            it( 'which is set to true', function () {
+                expect( Backbone.DeclarativeViews._marionetteIntegration ).to.be.true;
+            } );
+
         } );
 
         describe( 'The Backbone.Marionette.TemplateCache.get() method', function () {
