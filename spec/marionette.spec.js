@@ -6,6 +6,11 @@
 
     describe( 'Tests with Marionette.ItemView', function () {
 
+        before( function () {
+            Backbone.DeclarativeViews.clearCache();
+            Backbone.Marionette.TemplateCache.clear();
+        } );
+
         beforeEach( function () {
 
             dataAttributes = {
@@ -33,7 +38,8 @@
         } );
 
         after( function () {
-            Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+            Backbone.DeclarativeViews.clearCache();
+            Backbone.Marionette.TemplateCache.clear();
         } );
 
         describe( 'Basics', function () {

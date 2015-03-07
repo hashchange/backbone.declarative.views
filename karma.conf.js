@@ -37,6 +37,7 @@ module.exports = function(config) {
 
       // Test helpers
       'spec/chai-helpers/**/*.js',
+      'spec/helpers/**/*.js',
 
       // Tests
       'spec/**/*.+(spec|test|tests).js'

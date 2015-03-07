@@ -117,7 +117,7 @@
                     expect( returnedElProperties ).to.eql( attributesAsProperties );
                 } );
 
-                it( 'returns returns the inner HTML of the template', function () {
+                it( 'returns the inner HTML of the template', function () {
                     expect( view.declarativeViews.getCachedTemplate().html ).to.equal( $templateNode.html() );
                 } );
 
@@ -143,7 +143,7 @@
                     expect( returnedElProperties ).to.eql( attributesAsProperties );
                 } );
 
-                it( 'returns returns the inner HTML of the template', function () {
+                it( 'returns the inner HTML of the template', function () {
                     expect( view.declarativeViews.getCachedTemplate().html ).to.equal( $templateNode.html() );
                 } );
 
@@ -273,7 +273,7 @@
                     expect( returnedElProperties ).to.eql( attributesAsProperties );
                 } );
 
-                it( 'returns returns the inner HTML of the template', function () {
+                it( 'returns the inner HTML of the template', function () {
                     expect( retrieved.html ).to.equal( $templateNode.html() );
                 } );
 
@@ -301,7 +301,7 @@
                     expect( returnedElProperties ).to.eql( attributesAsProperties );
                 } );
 
-                it( 'returns returns the inner HTML of the template', function () {
+                it( 'returns the inner HTML of the template', function () {
                     expect( retrieved.html ).to.equal( $templateNode.html() );
                 } );
 
@@ -556,7 +556,7 @@
 
             var dataAttributes2, dataAttributes3, $templateNode2, $templateNode3,
                 cleanup = function () {
-                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#template2", "#template3", "#template4", "#template5" );
+                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#template2", "#template3" );
                 };
 
             beforeEach ( function () {
@@ -709,7 +709,7 @@
 
                 Backbone.DeclarativeViews.clearCachedTemplate( "This is plain text with some <strong>markup</strong>, but not wrapped in an element" );
 
-                // Check cache for templates #1 through #5 - still there?
+                // Check cache for templates #1 through #3 - still there?
                 expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
                 expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
                 expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
@@ -734,7 +734,7 @@
 
                 Backbone.DeclarativeViews.clearCachedTemplate( function () { return "<p>Template content</p>"; } );
 
-                // Check cache for templates #1 through #5 - still there?
+                // Check cache for templates #1 through #3 - still there?
                 expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
                 expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
                 expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
