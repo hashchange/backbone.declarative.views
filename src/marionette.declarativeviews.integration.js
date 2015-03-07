@@ -40,7 +40,7 @@
                     throw new Backbone.Marionette.Error( { name: errType, message: errMsg } );
                 } else if ( typeof throwError === "function" ) {
                     // Error handling in Marionette 1.x
-                    throwError( errMsg, errType );
+                    throwError( errMsg, errType );                                              // jshint ignore:line
                 } else {
                     // Being future proof, we throw our own errors if all else has failed
                     throw new Error( errMsg );
@@ -57,9 +57,9 @@
 
         Backbone.Marionette.TemplateCache.clear = function () {
             if ( arguments.length ) {
-                Backbone.DeclarativeViews.clearCachedTemplate( arguments );
+                Backbone.DeclarativeViews.clearCachedTemplate( arguments, true );
             } else {
-                Backbone.DeclarativeViews.clearCache();
+                Backbone.DeclarativeViews.clearCache( true );
             }
 
             originalClearCache.apply( this, arguments );

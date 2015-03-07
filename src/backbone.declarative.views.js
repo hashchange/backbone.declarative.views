@@ -135,13 +135,23 @@
 
     /**
      * Clears the cache as a whole.
+     *
+     * Also clears the Marionette cache (if Marionette is available). Note that this is one-directional: Clearing the
+     * cache _in Marionette_ does not also clear the DeclarativeViews cache. Activate full Marionette integration for
+     * that (see below, clearCachedTemplate()).
+     *
+     * @param {boolean} [fromMarionette=false]  internal flag to prevent circular calls to and from Marionette
      */
-    function clearCache () {
+    function clearCache ( fromMarionette ) {
         templateCache = {};
+        if ( ! fromMarionette && Backbone.Marionette && Backbone.Marionette.TemplateCache ) Backbone.Marionette.TemplateCache.clear();
     }
 
     /**
      * Removes one or more cache entries.
+     *
+     * Arguments
+     * ---------
      *
      * The strings identifying the cache entries can be passed in as individual arguments (prop1, prop2, ...), or as an
      * array. Each string must be
@@ -155,23 +165,58 @@
      *
      * Strings not matching a cache entry are ignored, as are non-string arguments.
      *
-     * @param {...string|string[]} [templateProp]  template selector(s), or raw template HTML, identifying the cache entry
+     * Marionette.TemplateCache
+     * ------------------------
+     *
+     * When templates are cleared here, they are removed from the Marionette template cache as well (if Marionette is
+     * loaded).
+     *
+     * This is one-directional. If it is supposed to work both ways, and cache clearing in Marionette should clear the
+     * cache in Backbone.Declarative.Views as well, activate full Marionette integration. Load the provided helper,
+     * marionette.declarativeviews.integration.js, or another component taking care of that integration (e.g.
+     * Marionette.Handlebars).
+     *
+     * @param {...string|string[]} [templateProp]  template selector(s), or raw template HTML, identifying the cache
+     *                                             entry. NB The last argument can also be an internal "fromMarionette"
+     *                                             flag to prevent circular calls to and from Marionette
      */
     function clearCachedTemplate ( templateProp ) {
 
+        var fromMarionette = false,
+            args = _.toArray( arguments ),
+            lastArg = _.last( args );
+
+        // When called from Marionette, or called recursively, the last argument is a "fromMarionette" boolean. Splice
+        // it off before proceeding.
+        if ( args.length && _.isBoolean( lastArg ) ) fromMarionette = args.pop();
+
         // Handle multiple template props passed in as a varargs list, or as an array, with recursive calls for each
         // template property.
-        if ( arguments.length > 1 ) {
-            _.each( arguments, function ( singleProp ) { clearCachedTemplate( singleProp ); } );
+        if ( args.length > 1 ) {
+            _.each( args, function ( singleProp ) { clearCachedTemplate( singleProp, fromMarionette ); } );
         } else if ( _.isArray( templateProp ) || _.isArguments( templateProp ) ) {
-            _.each( templateProp, function ( singleProp ) { clearCachedTemplate( singleProp ); } );
+            _.each( templateProp, function ( singleProp ) { clearCachedTemplate( singleProp, fromMarionette ); } );
+        } else {
+
+            if ( ! templateProp ) throw new Error( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
+
+            // Dealing with a single templateProp argument.
+            //
+            // Delete the corresponding cache entry.  Try to clear it from the Marionette cache as well. The
+            // templateProp must be a string - non-string arguments are quietly ignored.
+            if ( _.isString( templateProp ) ) {
+
+                _clearCachedTemplate( templateProp );
+
+                if ( ! fromMarionette && Backbone.Marionette && Backbone.Marionette.TemplateCache ) {
+                    try {
+                        Backbone.Marionette.TemplateCache.clear( templateProp );
+                    } catch ( err ) {}
+                }
+
+            }
+
         }
-
-        if ( ! templateProp ) throw new Error( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
-
-        // Delete a cache entry for an individual template property. It must be a string - non-string arguments are
-        // quietly ignored.
-        if ( _.isString( templateProp ) ) _clearCachedTemplate( templateProp );
 
     }
 
