@@ -47,7 +47,10 @@
     Backbone.DeclarativeViews = {
         getCachedTemplate: getTemplateData,
         clearCachedTemplate: clearCachedTemplate,
-        clearCache: clearCache
+        clearCache: clearCache,
+        custom: {
+            loadTemplate: undefined
+        }
     };
 
     //
@@ -245,18 +248,23 @@
      * The creation of a cache entry can fail if the template property is an empty string, or a selector which doesn't
      * match anything, or a string which jQuery can't process.
      *
+     * Uses a custom loader if specified, instead of loading the template with jQuery (default).
+     *
      * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
      * @returns {CachedTemplateData|Uncacheable}
      */
     function _createTemplateCache( templateProp ) {
         var $template, data,
+            customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
             cacheId = _getCacheId( templateProp );
 
         try {
-            $template = Backbone.$( templateProp );
+            $template = customLoader ? customLoader( templateProp ) : Backbone.$( templateProp );
         } catch ( err ) {
             $template = "";
         }
+
+        if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new Error( "Invalid return value. Custom loadTemplate function must return a jQuery instance, but it hasn't" );
 
         if ( $template.length ) {
 
