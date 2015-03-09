@@ -45,10 +45,14 @@
             Backbone.Marionette.TemplateCache.clear( "#template" );
         } );
 
-        describe( 'Full Marionette integration is signalled by the _marionetteIntegration flag', function () {
+        describe( 'Full Marionette integration is signalled', function () {
 
-            it( 'which is set to true', function () {
-                expect( Backbone.DeclarativeViews._marionetteIntegration ).to.be.true;
+            it( 'by the marionetteLoadTemplate flag, which is set to true, for the loader', function () {
+                expect( Backbone.DeclarativeViews._integrationFlags.marionetteLoadTemplate ).to.be.true;
+            } );
+
+            it( 'by the marionetteClearCache flag, which is set to true, for the cache clearing', function () {
+                expect( Backbone.DeclarativeViews._integrationFlags.marionetteClearCache ).to.be.true;
             } );
 
         } );
