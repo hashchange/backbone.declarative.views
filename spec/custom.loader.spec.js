@@ -89,12 +89,13 @@
             } );
 
             it( 'it gets stored in the cache', function () {
-                var expected = _.extend( {},
-                    { valid: true, html: innerTemplateHtml },
-                    dataAttributesToProperties( dataAttributes )
-                );
+                expect( view.declarativeViews.getCachedTemplate() ).to.returnCacheValueFor( dataAttributes, outerTemplateHtml );
+            } );
 
-                expect( view.declarativeViews.getCachedTemplate() ).to.eql( expected );
+            it( 'its outer HTML is produced by the outerHtml function which is returned by the cache', function () {
+                var retrieved = view.declarativeViews.getCachedTemplate();
+                expect( retrieved.outerHtml ).to.be.a( "function" );
+                expect( retrieved.outerHtml() ).to.equal( outerTemplateHtml );
             } );
 
             it( 'its inner HTML is returned as the template HTML by the cache', function () {
@@ -138,7 +139,7 @@
 
         } );
 
-        describe( 'A Marionette view remains true to its standard behaviour and throws an error on render(), at the latest', function () {
+        describe( 'A Marionette view remains true to its standard behaviour and throws an error on render(), or maybe even earlier', function () {
 
             it( 'when the view does not reference a template', function () {
                 View = Backbone.Marionette.ItemView.extend();

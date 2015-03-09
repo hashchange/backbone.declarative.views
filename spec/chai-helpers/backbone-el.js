@@ -276,5 +276,99 @@
 
     } );
 
+    /**
+     * Checks if the subject, the value returned by a cache query, matches expectations. Ie, it must contain
+     *
+     * - the expected properties and values for a given set of data attributes
+     * - the template HTML structure (html, outerHtml) for a given outer HTML
+     * - a valid: true property
+     *
+     * The expected outerHtml string needn't have the data attributes applied - this is handled by the assertion. Data
+     * attributes set on the outerHtml are ignored. In fact, they are removed from the outerHtml string, and replaced by
+     * the attributes specified in the dataAttributes argument.
+     *
+     * The outerHtml can be passed in as a string or a jQuery node.
+     *
+     * Examples:
+     *
+     *   expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
+     *   expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, $templateNode );
+     *
+     * @param {Object}        dataAttributes  hash of data attributes. Key names must have the "data-" prefix
+     * @param {jQuery|string} outerHtml       outer HTML of the template node, may or may not include the data attributes
+     */
+    Assertion.addMethod( 'returnCacheValueFor', function ( dataAttributes, outerHtml ) {
+
+        var $template, invalidDataAttributes, expected, transformed,
+            attrNames = [],
+            cacheEntry = this._obj;
+
+        // If a jQuery node is passed in, turn it into an independent copy. (We could possibly also use the .clone()
+        // method of jQuery, but the one here is guaranteed to be free of side effects.)
+        if ( outerHtml instanceof $ ) outerHtml = outerHtml.prop( 'outerHTML' );
+
+        // Check if the arguments are correct
+        new Assertion( outerHtml ).is.a( "string", "Invalid outerHtml argument passed as expected value. It must be a string or a jQuery node, but it is not. It is of type " + ( typeof outerHtml )  );
+        new Assertion( dataAttributes ).to.be.an( "object", "Invalid dataAttributes argument passed as expected value. It must be an object but is a " + ( typeof dataAttributes ) );
+
+        invalidDataAttributes= ( _.reject( _.keys( dataAttributes ), function ( key ) {
+            return key.match( /^data-/ );
+        } ) ).join( ", " );
+        new Assertion( invalidDataAttributes ).to.have.length( 0, 'Invalid dataAttributes argument passed as expected value. Attribute names (keys) must be prefixed with "data-", but the following attributes are not: ' + invalidDataAttributes + "\n(Noise, ignore)" );
+
+        // Create a node from the outerHtml expectation and see if it works.
+        try {
+            $template = $( outerHtml );
+            if ( ! $template.length ) throw new Error();
+        } catch ( err ) {
+            new Assertion( false ).to.equal( true, "Invalid outerHtml argument passed as expected value. The string \"" + outerHtml + "\" is not valid outer HTML and can't be turned into a node\n(Noise, ignore)" );
+        }
+
+        // Remove existing data attributes from the $template node and replace them with the ones specified in
+        // dataAttributes.
+        //
+        // Because the attributes collection is a live list, we must iterate safely and extract the names first, and
+        // only then begin to remove attributes.
+        _.each( $template[0].attributes, function ( attrNode ) {
+            if ( attrNode.nodeName.match( /^data-/ ) ) attrNames.push( attrNode.nodeName );
+        } );
+        _.each( attrNames, function ( attrName ) {
+            $template.removeAttr( attrName );
+        } );
+        _.each( dataAttributes, function ( value, name ) {
+            $template.attr( name, value );
+        } );
+
+        // Build the expected object. It is not exactly identical to the corresponding cache entry: its outerHtml
+        // property holds the actual outer HTML and not a function producing it.
+        //
+        // Before expected and actual values are compared, the test subject must be transformed to match that format.
+        expected = _.extend(
+            dataAttributesToProperties( dataAttributes ),
+            {
+                valid: true,
+                html: $template.html(),
+                outerHtml: $template.prop( "outerHTML" )
+            } );
+
+        // Finally, do the actual test.
+
+        // Check if the test subject is a an object.
+        new Assertion( cacheEntry ).is.an( 'object' );
+
+        // Check if it has an outerHtml property which is a function.
+        new Assertion( cacheEntry ).to.have.ownProperty( "outerHtml" );
+        new Assertion( cacheEntry.outerHtml ).to.be.a( "function", "outerHtml property" );
+        new Assertion( cacheEntry.outerHtml() ).to.equal( expected.outerHtml, "return value of outerHtml()" );
+
+        // Create a clone of the test subject, with the outerHtml function being replaced by the function return value.
+        transformed = _.clone( cacheEntry );
+        transformed.outerHtml = cacheEntry.outerHtml();
+
+        // Compare the transformed test subject clone to the expected object.
+        new Assertion( transformed ).to.eql( expected );
+
+    } );
+
 
 } ));

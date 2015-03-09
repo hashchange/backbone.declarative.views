@@ -254,7 +254,7 @@
      * @returns {CachedTemplateData|Uncacheable}
      */
     function _createTemplateCache( templateProp ) {
-        var $template, data,
+        var $template, data, html, outerTagParts,
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
             cacheId = _getCacheId( templateProp );
 
@@ -271,8 +271,12 @@
             // Read the el-related data attributes of the template.
             data = _getDataAttributes( $template ) ;
 
+            html = $template.html();
+            outerTagParts = getOuterTagParts( $template, html );
+
             templateCache[cacheId] = {
-                html: $template.html(),
+                html: html,
+                outerHtml: _.partial( outerHtml, cacheId, outerTagParts[0], outerTagParts[1] ),
                 tagName: data.tagName,
                 className: data.className,
                 id: data.id,
@@ -348,6 +352,39 @@
         }
 
         return $elem.data();
+    }
+
+    /**
+     * Restores the outer HTML of a template stored in the cache, given the cache ID and the opening and closing tag of
+     * the outer node. Returns the HTML as a string.
+     *
+     * @param   {string} cacheId
+     * @param   {string} openingTag
+     * @param   {string} closingTag
+     * @returns {string}
+     */
+    function outerHtml ( cacheId, openingTag, closingTag ) {
+        return openingTag + templateCache[cacheId].html + closingTag;
+    }
+
+    /**
+     * Returns the opening and closing tag of the template node, given the $template. Returns them in an array
+     * (0: opening tag, 1: closing tag).
+     *
+     * If the inner HTML of the template has already been extracted in the calling code, it is more efficient to pass it
+     * in as well.
+     *
+     * @param   {jQuery} $template
+     * @param   {string} [html]     the inner HTML of the template node, if already available
+     * @returns {string[]}
+     */
+    function getOuterTagParts ( $template, html ) {
+        if ( ! html ) html = $template.html();
+
+        return $template
+            .prop( "outerHTML" )
+            .replace( html, "\n" )
+            .split( "\n" );
     }
 
 

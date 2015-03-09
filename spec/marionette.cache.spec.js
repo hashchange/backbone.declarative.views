@@ -118,9 +118,9 @@
                 it( 'stores the template in the DeclarativeViews cache as well', function () {
                     // We need to delete the template node before querying the DeclarativeViews cache, otherwise the
                     // cache would be primed by the query itself in any event.
-                    var expected = _.extend( { valid: true, html: $templateNode.html() }, attributesAsProperties );
+                    var origOuterHtml = $templateNode.prop( "outerHTML" );
                     $templateNode.remove();
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
                 } );
 
             } );
@@ -258,17 +258,12 @@
                 } );
 
                 it( 'allows changes made to the underlying template node to be picked up by Backbone.DeclarativeViews', function () {
-                    var expected = _.extend(
-                        dataAttributesToProperties( modifiedDataAttributes ),
-                        { valid: true, html: modifiedHtml }
-                    );
-
                     $templateNode
                         .attr( modifiedDataAttributes )
                         .html( modifiedHtml );
 
                     Backbone.Marionette.TemplateCache.clear( "#template" );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( modifiedDataAttributes, $templateNode );
                 } );
 
                 it( 'clears multiple templates from the Marionette cache when the selectors are passed as multiple arguments', function () {
@@ -333,16 +328,6 @@
                 } );
 
                 it( 'does not clear other templates from the DeclarativeViews cache', function () {
-                    var expected2 = _.extend(
-                            dataAttributesToProperties( dataAttributes2 ),
-                            { valid: true, html: $templateNode2.html() }
-                        ),
-
-                        expected3 = _.extend(
-                            dataAttributesToProperties( dataAttributes3 ),
-                            { valid: true, html: $templateNode3.html() }
-                        );
-
                     // Delete the template nodes so that their content indeed must come from the cache
                     $templateNode2.remove();
                     $templateNode3.remove();
@@ -351,8 +336,8 @@
                     Backbone.Marionette.TemplateCache.clear( "#template" );
 
                     // Check cache for template #2 and template #3 - still there?
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, $templateNode2 );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, $templateNode3 );
                 } );
 
                 it( 'fails silently if the template has already been removed from the cache', function () {
@@ -371,22 +356,6 @@
                 } );
 
                 it( 'fails silently if the template is a string containing text which is not wrapped in HTML elements (uncacheable string), and leaves the existing cache intact', function () {
-                    // Set expectations for the existing templates first - they must remain intact in the cache
-                    var expected = _.extend(
-                            dataAttributesToProperties( dataAttributes ),
-                            { valid: true, html: $templateNode.html() }
-                        ),
-
-                        expected2 = _.extend(
-                            dataAttributesToProperties( dataAttributes2 ),
-                            { valid: true, html: $templateNode2.html() }
-                        ),
-
-                        expected3 = _.extend(
-                            dataAttributesToProperties( dataAttributes3 ),
-                            { valid: true, html: $templateNode3.html() }
-                        );
-
                     Backbone.Marionette.TemplateCache.clear( "This is plain text with some <strong>markup</strong>, but not wrapped in an element" );
 
                     // Check the Marionette cache for templates #1 through #3 - still there?
@@ -395,28 +364,12 @@
                     expect( ( Backbone.Marionette.TemplateCache.get( "#template3" ) )() ).to.eql( $templateNode3.html() );
 
                     // Check the DeclarativeVies cache for templates #1 through #3 - still there?
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, $templateNode2 );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, $templateNode3 );
                 } );
 
                 it( 'fails silently if the template is not a string, and leaves the existing cache intact', function () {
-                    // Set expectations for the existing templates first - they must remain intact in the cache
-                    var expected = _.extend(
-                            dataAttributesToProperties( dataAttributes ),
-                            { valid: true, html: $templateNode.html() }
-                        ),
-
-                        expected2 = _.extend(
-                            dataAttributesToProperties( dataAttributes2 ),
-                            { valid: true, html: $templateNode2.html() }
-                        ),
-
-                        expected3 = _.extend(
-                            dataAttributesToProperties( dataAttributes3 ),
-                            { valid: true, html: $templateNode3.html() }
-                        );
-
                     Backbone.Marionette.TemplateCache.clear( function () { return "<p>Template content</p>"; } );
 
                     // Check the Marionette cache for templates #1 through #3 - still there?
@@ -425,9 +378,9 @@
                     expect( ( Backbone.Marionette.TemplateCache.get( "#template3" ) )() ).to.eql( $templateNode3.html() );
 
                     // Check the DeclarativeVies cache for templates #1 through #3 - still there?
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, $templateNode2 );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, $templateNode3 );
                 } );
 
                 it( 'throws an error when called with an empty string argument', function () {

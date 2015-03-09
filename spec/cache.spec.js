@@ -121,13 +121,21 @@
                     expect( view.declarativeViews.getCachedTemplate().html ).to.equal( $templateNode.html() );
                 } );
 
+                it( 'returns a function producing the outer HTML of the template when called', function () {
+                    var retrieved = view.declarativeViews.getCachedTemplate();
+                    expect( retrieved.outerHtml ).to.be.a( "function" );
+                    expect( retrieved.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
+                } );
+
             } );
 
             describe( 'with a template element specified as a raw HTML string', function () {
 
+                var templateHtml;
+
                 beforeEach( function () {
                     // Construct the HTML string
-                    var templateHtml = $( baseTemplateHtml )
+                    templateHtml = $( baseTemplateHtml )
                         .attr( dataAttributes )
                         .prop( 'outerHTML' );
 
@@ -144,7 +152,13 @@
                 } );
 
                 it( 'returns the inner HTML of the template', function () {
-                    expect( view.declarativeViews.getCachedTemplate().html ).to.equal( $templateNode.html() );
+                    expect( view.declarativeViews.getCachedTemplate().html ).to.equal( $( templateHtml ).html() );
+                } );
+
+                it( 'returns a function producing the outer HTML of the template when called', function () {
+                    var retrieved = view.declarativeViews.getCachedTemplate();
+                    expect( retrieved.outerHtml ).to.be.a( "function" );
+                    expect( retrieved.outerHtml() ).to.equal( $( templateHtml ).prop( "outerHTML" ) );
                 } );
 
             } );
@@ -166,6 +180,7 @@
 
                     expect( view.cachedTemplate ).to.be.an( "object" );
                     expect( view.cachedTemplate.html ).to.equal( $templateNode.html() );
+                    expect( view.cachedTemplate.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
                 } );
 
                 it( 'when the template is passed in as an option', function () {
@@ -173,21 +188,22 @@
 
                     expect( view.cachedTemplate ).to.be.an( "object" );
                     expect( view.cachedTemplate.html ).to.equal( $templateNode.html() );
+                    expect( view.cachedTemplate.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
                 } );
 
             } );
 
             describe( 'indeed uses the cache and keeps a template accessible, unmodified', function () {
 
-                var expected;
+                var origOuterHtml;
 
                 beforeEach ( function () {
                     Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
 
+                    origOuterHtml = $templateNode.prop( "outerHTML" );
+
                     // First access, priming the cache
                     view = new View( { template: "#template" } );
-
-                    expected = _.extend( { valid: true, html: $templateNode.html() }, attributesAsProperties );
                 } );
 
                 afterEach ( function () {
@@ -205,14 +221,14 @@
                     $templateNode.attr( modifiedDataAttributes );
                     view = new View( { template: "#template" } );
 
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( expected );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
                 } );
 
                 it( 'even if the underlying template node has been deleted after first use', function () {
                     $templateNode.remove();
                     view = new View( { template: "#template" } );
 
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( expected );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
                 } );
             } );
 
@@ -277,15 +293,20 @@
                     expect( retrieved.html ).to.equal( $templateNode.html() );
                 } );
 
+                it( 'returns a function producing the outer HTML of the template when called', function () {
+                    expect( retrieved.outerHtml ).to.be.a( "function" );
+                    expect( retrieved.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
+                } );
+
             } );
 
             describe( 'with a template element specified as a raw HTML string', function () {
 
-                var retrieved;
+                var templateHtml, retrieved;
 
                 beforeEach( function () {
                     // Construct the HTML string
-                    var templateHtml = $( baseTemplateHtml )
+                    templateHtml = $( baseTemplateHtml )
                         .attr( dataAttributes )
                         .prop( 'outerHTML' );
 
@@ -302,7 +323,12 @@
                 } );
 
                 it( 'returns the inner HTML of the template', function () {
-                    expect( retrieved.html ).to.equal( $templateNode.html() );
+                    expect( retrieved.html ).to.equal( $( templateHtml ).html() );
+                } );
+
+                it( 'returns a function producing the outer HTML of the template when called', function () {
+                    expect( retrieved.outerHtml ).to.be.a( "function" );
+                    expect( retrieved.outerHtml() ).to.equal( $( templateHtml ).prop( "outerHTML" ) );
                 } );
 
             } );
@@ -317,27 +343,27 @@
 
                 it( 'if the cache is still empty', function () {
                     Backbone.DeclarativeViews.clearCache();
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, $templateNode );
                 } );
 
                 it( 'if the cache is already primed with the requested template', function () {
                     view = new View( { template: "#template" } );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, $templateNode );;
                 } );
 
             } );
 
             describe( 'indeed uses the cache and keeps a template accessible, unmodified', function () {
 
-                var expected;
+                var origOuterHtml;
 
                 beforeEach ( function () {
                     Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
 
+                    origOuterHtml = $templateNode.prop( "outerHTML" );
+
                     // First access, priming the cache
                     view = new View( { template: "#template" } );
-
-                    expected = _.extend( { valid: true, html: $templateNode.html() }, attributesAsProperties );
                 } );
 
                 afterEach ( function () {
@@ -353,12 +379,12 @@
                     };
 
                     $templateNode.attr( modifiedDataAttributes );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
                 } );
 
                 it( 'even if the underlying template node has been deleted after first use', function () {
                     $templateNode.remove();
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).returnCacheValueFor( dataAttributes, origOuterHtml );
                 } );
             } );
 
@@ -403,33 +429,28 @@
                         "data-class-name": "modifiedClass",
                         "data-id": "modifiedId",
                         "data-attributes": '{ "lang": "fr", "title": "title from modified data attributes" }'
-                    },
-
-                    expected = _.extend(
-                        dataAttributesToProperties( modifiedDataAttributes ),
-                        { valid: true, html: $templateNode.html() }
-                    );
+                    };
 
                 $templateNode.attr( modifiedDataAttributes );
 
                 view.declarativeViews.clearCachedTemplate();
-                expect( view.declarativeViews.getCachedTemplate() ).to.eql( expected );
+                expect( view.declarativeViews.getCachedTemplate() ).to.returnCacheValueFor( modifiedDataAttributes, $templateNode );
             } );
 
             it( 'allows changes made to the underlying template node to be picked up, properly handling the deletion of data-* attributes with string values', function () {
                 // We test that these values are set to undefined when queried again from the cache.
 
-                var modifiedDataAttributes = {
+                var retrieved,
+
+                    modifiedDataAttributes = {
                         "data-id": "modifiedId"
                     },
 
-                    expected = {
-                        tagName: undefined,
-                        className: undefined,
-                        id: "modifiedId",
-                        attributes: { lang: "en", title: "title from data attributes" },
-                        html: $templateNode.html(),
-                        valid: true
+                    resultingDataAttributes = {
+                        "data-tag-name": undefined,
+                        "data-class-name": undefined,
+                        "data-id": "modifiedId",
+                        "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
                     };
 
                 $templateNode
@@ -438,7 +459,11 @@
                     .removeAttr( "data-class-name" );
 
                 view.declarativeViews.clearCachedTemplate();
-                expect( view.declarativeViews.getCachedTemplate() ).to.eql( expected );
+
+                retrieved = view.declarativeViews.getCachedTemplate();
+                expect( retrieved ).to.have.ownProperty( "tagName", undefined );
+                expect( retrieved ).to.have.ownProperty( "className", undefined );
+                expect( retrieved ).to.returnCacheValueFor( resultingDataAttributes, $templateNode );
             } );
 
             it( 'allows changes made to the underlying template node to be picked up, properly handling a deleted `data-attributes` attribute', function () {
@@ -448,19 +473,19 @@
                 // When re-reading it after the cache has been cleared, the parsing should not blow up with an error
                 // just because the attribute suddenly doesn't exist and evaluates to undefined.
 
-                var modifiedDataAttributes = {
+                var retrieved,
+
+                    modifiedDataAttributes = {
                         "data-tag-name": "li",
                         "data-class-name": "modifiedClass",
                         "data-id": "modifiedId"
                     },
 
-                    expected = {
-                        tagName: "li",
-                        className: "modifiedClass",
-                        id: "modifiedId",
-                        attributes: undefined,
-                        html: $templateNode.html(),
-                        valid: true
+                    resultingDataAttributes = {
+                        "data-tag-name": "li",
+                        "data-class-name": "modifiedClass",
+                        "data-id": "modifiedId",
+                        "data-attributes": undefined
                     };
 
                 $templateNode
@@ -468,7 +493,10 @@
                     .removeAttr( "data-attributes" );
 
                 view.declarativeViews.clearCachedTemplate();
-                expect( view.declarativeViews.getCachedTemplate() ).to.eql( expected );
+
+                retrieved = view.declarativeViews.getCachedTemplate();
+                expect( retrieved ).to.have.ownProperty( "attributes", undefined );
+                expect( retrieved ).to.returnCacheValueFor( resultingDataAttributes, $templateNode );
             } );
 
             it( 'does not clear other templates from the cache', function () {
@@ -498,17 +526,7 @@
                         .attr( "id", "template3" )
                         .attr( dataAttributes3 )
                         .text( "Content of template #3" )
-                        .appendTo( "body" ),
-
-                    expected2 = _.extend(
-                        dataAttributesToProperties( dataAttributes2 ),
-                        { valid: true, html: $templateNode2.html() }
-                    ),
-
-                    expected3 = _.extend(
-                        dataAttributesToProperties( dataAttributes3 ),
-                        { valid: true, html: $templateNode3.html() }
-                    );
+                        .appendTo( "body" );
 
                 // Prime the cache with the additional templates (template #1 has already been cached in beforeEach)
                 new View( { template: "#template2" } );
@@ -522,8 +540,8 @@
                 view.declarativeViews.clearCachedTemplate();
 
                 // Check cache for template #2 and template #3 - still there?
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, $templateNode2 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, $templateNode3 );
             } );
 
             it( 'fails silently if the template has already been removed from the cache', function () {
@@ -616,17 +634,12 @@
                         "data-class-name": "modifiedClass",
                         "data-id": "modifiedId",
                         "data-attributes": '{ "lang": "fr", "title": "title from modified data attributes" }'
-                    },
-
-                    expected = _.extend(
-                        dataAttributesToProperties( modifiedDataAttributes ),
-                        { valid: true, html: $templateNode.html() }
-                    );
+                    };
 
                 $templateNode.attr( modifiedDataAttributes );
 
                 Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( modifiedDataAttributes, $templateNode );
             } );
 
             it( 'clears multiple templates from the cache when the selectors are passed as multiple arguments', function () {
@@ -654,15 +667,8 @@
             } );
 
             it( 'does not clear other templates from the cache', function () {
-                var expected2 = _.extend(
-                        dataAttributesToProperties( dataAttributes2 ),
-                        { valid: true, html: $templateNode2.html() }
-                    ),
-
-                    expected3 = _.extend(
-                        dataAttributesToProperties( dataAttributes3 ),
-                        { valid: true, html: $templateNode3.html() }
-                    );
+                var origOuterHtml2 = $templateNode2.prop( "outerHTML" ),
+                    origOuterHtml3 = $templateNode3.prop( "outerHTML" );
 
                 // Delete the template nodes so that their content indeed must come from the cache
                 $templateNode2.remove();
@@ -672,8 +678,8 @@
                 Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
 
                 // Check cache for template #2 and template #3 - still there?
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, origOuterHtml2 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, origOuterHtml3 );
             } );
 
             it( 'fails silently if the template has already been removed from the cache', function () {
@@ -692,52 +698,30 @@
 
             it( 'fails silently if the template is a string containing text which is not wrapped in HTML elements (uncacheable string), and leaves the existing cache intact', function () {
                 // Set expectations for the existing templates first - they must remain intact in the cache
-                var expected = _.extend(
-                        dataAttributesToProperties( dataAttributes ),
-                        { valid: true, html: $templateNode.html() }
-                    ),
-
-                    expected2 = _.extend(
-                        dataAttributesToProperties( dataAttributes2 ),
-                        { valid: true, html: $templateNode2.html() }
-                    ),
-
-                    expected3 = _.extend(
-                        dataAttributesToProperties( dataAttributes3 ),
-                        { valid: true, html: $templateNode3.html() }
-                    );
+                var origOuterHtml = $templateNode.prop( "outerHTML" ),
+                    origOuterHtml2 = $templateNode2.prop( "outerHTML" ),
+                    origOuterHtml3 = $templateNode3.prop( "outerHTML" );
 
                 Backbone.DeclarativeViews.clearCachedTemplate( "This is plain text with some <strong>markup</strong>, but not wrapped in an element" );
 
                 // Check cache for templates #1 through #3 - still there?
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, origOuterHtml2 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, origOuterHtml3 );
             } );
 
             it( 'fails silently if the template is not a string, and leaves the existing cache intact', function () {
                 // Set expectations for the existing templates first - they must remain intact in the cache
-                var expected = _.extend(
-                        dataAttributesToProperties( dataAttributes ),
-                        { valid: true, html: $templateNode.html() }
-                    ),
-
-                    expected2 = _.extend(
-                        dataAttributesToProperties( dataAttributes2 ),
-                        { valid: true, html: $templateNode2.html() }
-                    ),
-
-                    expected3 = _.extend(
-                        dataAttributesToProperties( dataAttributes3 ),
-                        { valid: true, html: $templateNode3.html() }
-                    );
+                var origOuterHtml = $templateNode.prop( "outerHTML" ),
+                    origOuterHtml2 = $templateNode2.prop( "outerHTML" ),
+                    origOuterHtml3 = $templateNode3.prop( "outerHTML" );
 
                 Backbone.DeclarativeViews.clearCachedTemplate( function () { return "<p>Template content</p>"; } );
 
                 // Check cache for templates #1 through #3 - still there?
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( expected );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( expected2 );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( expected3 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.returnCacheValueFor( dataAttributes2, origOuterHtml2 );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.returnCacheValueFor( dataAttributes3, origOuterHtml3 );
             } );
 
             it( 'throws an error when called without arguments', function () {
