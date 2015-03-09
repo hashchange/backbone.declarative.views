@@ -73,7 +73,7 @@
 
         if ( _.isString( templateProp ) ) {
 
-            data = templateCache[ _getCacheId( templateProp ) ];
+            data = templateCache[ templateProp ];
             if ( ! data ) data = _createTemplateCache( templateProp );
 
         } else {
@@ -256,7 +256,7 @@
     function _createTemplateCache( templateProp ) {
         var $template, data, html, outerTagParts,
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
-            cacheId = _getCacheId( templateProp );
+            cacheId = templateProp;
 
         try {
             $template = customLoader ? customLoader( templateProp ) : Backbone.$( templateProp );
@@ -298,22 +298,7 @@
      * @param {string} templateProp  template selector, or raw template HTML, identifying the cache entry
      */
     function _clearCachedTemplate ( templateProp ) {
-        var cacheId = _getCacheId( templateProp );
-        if ( templateCache[ cacheId ] ) delete templateCache[ cacheId ];
-    }
-
-    /**
-     * Returns the cache ID for a template.
-     *
-     * The ID is built from the page URL and the value of the template property (just string values are passed in here).
-     * That value is the template selector in most cases, but it could also be a string containing the actual template
-     * HTML.
-     *
-     * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
-     * @returns {string}
-     */
-    function _getCacheId ( templateProp ) {
-        return typeof location !== "undefined" ? location.host + location.pathname + templateProp : templateProp;
+        if ( templateCache[ templateProp ] ) delete templateCache[ templateProp ];
     }
 
     /**
