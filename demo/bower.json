@@ -21,7 +21,15 @@
     "tests"
   ],
   "dependencies": {
-    "requirejs": "~2.1.14",
-    "foundation": "~5.1.1"
+    "foundation": "~5.5.1",
+    "handlebars": "~1.3.0",
+    "jquery": "^1",
+    "marionette.handlebars": "https://gist.github.com/hashchange/03d5da370a39863d5f7e/download",
+    "modernizr": "~2.8.3",
+    "requirejs": "~2.1.16",
+    "usertiming": "~0.1.6"
+  },
+  "resolutions": {
+    "jquery": "^1"
   }
 }

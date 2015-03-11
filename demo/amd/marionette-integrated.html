@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AMD setup: Marionette with Backbone.Declarative.Views integration</title>
+
+    <!-- ATTN Foundation loaded without JS - stay clear of JS-driven widgets, or add the JS setup -->
+    <!--
+        ATTN jQuery 1.x is used here, making the demo compatible with oldIE. As a side effect,
+        Foundation 5 JS can't be used reliably (requires jQuery 2.x). Stay clear, or switch to
+        jQuery 2.x, available in the top-level bower_components.
+    -->
+    <link rel="stylesheet" href="../bower_demo_components/foundation/css/normalize.css">
+    <link rel="stylesheet" href="../bower_demo_components/foundation/css/foundation.css">
+
+    <link rel="stylesheet" href="amd.css">
+
+    <!-- Fix HTML5 tags in oldIE and other lacking legacy browsers -->
+    <script src="../bower_demo_components/modernizr/modernizr.js"></script>
+
+    <script id="list-template" data-tag-name="ul" data-class-name="list small-block-grid-4 medium-block-grid-8 large-block-grid-10" type="text/x-template">
+        <!-- no content - template just exists for the el definition -->
+    </script>
+
+    <script id="item-template" data-tag-name="li" data-class-name="item" type="text/x-template">
+        <%= number %>
+    </script>
+
+    <script id="stats-template" data-tag-name="p" data-class-name="row" type="text/x-template">
+        Generating <%= itemViewCount %> item views took <%= duration %>ms. Finally, when painting was over, <%= totalDuration %>ms had passed.
+    </script>
+
+</head>
+<body>
+    <!-- check that 'bower install' has been run in the demo dir if bower.json isn't empty -->
+    <script src="../bower-check.js"></script>
+
+
+    <section id="header">
+        <h1 class="row">AMD setup: Marionette with Backbone.Declarative.Views integration</h1>
+        <p class="row">This page uses the AMD build in the <code>dist</code> directory, not the files in <code>src</code>. In other words, run the <code>grunt</code> command first to build a current version.</p>
+    </section>
+
+    <section class="stats">
+        <h2 class="row">Performance statistics</h2>
+    </section>
+
+    <section class="content">
+        <h2 class="row">Content</h2>
+        <div class="container row"></div>
+    </section>
+    
+    <!-- libraries --><!-- edit and replace with your project libraries as needed -->
+    <script src="../bower_demo_components/requirejs/require.js"></script>
+    <script src="require-config.js"></script>
+    <script>
+        // Relative to the baseUrl defined in require-config.js
+        require( ['../demo/amd/marionette-integrated'] );
+    </script>
+
+</body>
+</html>

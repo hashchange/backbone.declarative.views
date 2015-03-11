@@ -1,0 +1,42 @@
+@charset "utf-8";
+
+body {
+    margin: 0.25rem;
+}
+
+#header {
+    margin-bottom: 2rem;
+}
+
+.list {
+    list-style: none;
+    margin: 0;
+}
+
+li.item {
+    display: block;
+    box-sizing: border-box;
+    border: 1px dotted red;
+    padding: 0;
+    text-align: center;
+    line-height: 3rem;
+    height: 3rem;
+    vertical-align: middle;
+}
+
+h1 {
+    font-size: 2.25rem;
+}
+
+h2 {
+    font-size: 1.75rem;
+}
+
+.stats {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    margin-bottom: 2rem;
+
+    box-sizing: border-box;
+    min-height: 8rem;
+}
