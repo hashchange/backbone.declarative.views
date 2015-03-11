@@ -6,7 +6,8 @@
         module.exports = factory(
             require( 'underscore' ),
             require( 'backbone' ),
-            require( 'marionette' )
+            require( 'marionette' ),
+            require( 'backbone.declarative.views' )
         );
 
     } else if ( typeof define === 'function' && define.amd ) {
@@ -14,7 +15,8 @@
         define( [
             'underscore',
             'backbone',
-            'marionette'
+            'marionette',
+            'backbone.declarative.views'
         ], factory );
 
     }
