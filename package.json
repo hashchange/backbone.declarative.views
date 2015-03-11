@@ -55,7 +55,7 @@
     "karma-requirejs": "~0.2.2",
     "karma-script-launcher": "~0.1.0",
     "matchdep": "~0.3.0",
-    "mocha": "~2.1.0",
+    "mocha": "~2.2.1",
     "requirejs": "~2.1.16"
   }
 }
