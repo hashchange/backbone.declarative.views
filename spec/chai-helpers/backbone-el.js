@@ -281,6 +281,7 @@
      *
      * - the expected properties and values for a given set of data attributes
      * - the template HTML structure (html, outerHtml) for a given outer HTML
+     * - a "compiled" property which is undefined by default, or holds a function returning the final HTML
      * - a valid: true property
      *
      * The expected outerHtml string needn't have the data attributes applied - this is handled by the assertion. Data
@@ -289,17 +290,21 @@
      *
      * The outerHtml can be passed in as a string or a jQuery node.
      *
+     * The optional compiledTemplate expectation must be a function which produces the final HTML. If provided, it will
+     * be called and its output compared to that of the actual compiledTemplate function, which will be called as well.
+     *
      * Examples:
      *
      *   expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
      *   expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, $templateNode );
      *
-     * @param {Object}        dataAttributes  hash of data attributes. Key names must have the "data-" prefix
-     * @param {jQuery|string} outerHtml       outer HTML of the template node, may or may not include the data attributes
+     * @param {Object}             dataAttributes                hash of data attributes. Key names must have the "data-" prefix
+     * @param {jQuery|string}      outerHtml                     outer HTML of the template node, may or may not include the data attributes
+     * @param {Function|undefined} [compiledTemplate=undefined]  the expected template function
      */
-    Assertion.addMethod( 'returnCacheValueFor', function ( dataAttributes, outerHtml ) {
+    Assertion.addMethod( 'returnCacheValueFor', function ( dataAttributes, outerHtml, compiledTemplate ) {
 
-        var $template, invalidDataAttributes, expected, transformed,
+        var $template, invalidDataAttributes, compiled, expected, transformed,
             attrNames = [],
             cacheEntry = this._obj;
 
@@ -316,12 +321,26 @@
         } ) ).join( ", " );
         new Assertion( invalidDataAttributes ).to.have.length( 0, 'Invalid dataAttributes argument passed as expected value. Attribute names (keys) must be prefixed with "data-", but the following attributes are not: ' + invalidDataAttributes + "\n(Noise, ignore)" );
 
+        if ( compiledTemplate !== undefined ) {
+            new Assertion ( compiledTemplate ).is.a( "function", "Invalid compiledTemplate argument passed as expected value. It is not a function" );
+        }
+
         // Create a node from the outerHtml expectation and see if it works.
         try {
             $template = $( outerHtml );
             if ( ! $template.length ) throw new Error();
         } catch ( err ) {
             new Assertion( false ).to.equal( true, "Invalid outerHtml argument passed as expected value. The string \"" + outerHtml + "\" is not valid outer HTML and can't be turned into a node\n(Noise, ignore)" );
+        }
+
+        // Try evaluating the compiledTemplate expectation, if provided, and see if it works.
+        if ( compiledTemplate ) {
+            try {
+                compiled = compiledTemplate();
+            } catch ( err ) {
+                new Assertion( false ).to.equal( true, "Invalid compiledTemplate function passed in as expected value. When called, it threw an error. " + err + "\n(Noise, ignore)");
+            }
+            if ( !_.isString( compiled ) ) throw new Error( "Invalid compiledTemplate function passed in as expected value. The compiledTemplate function did not produce a string when called" );
         }
 
         // Remove existing data attributes from the $template node and replace them with the ones specified in
@@ -339,8 +358,11 @@
             $template.attr( name, value );
         } );
 
-        // Build the expected object. It is not exactly identical to the corresponding cache entry: its outerHtml
-        // property holds the actual outer HTML and not a function producing it.
+        // Build the expected object. It is not exactly identical to the corresponding cache entry:
+        //
+        // - Its outerHtml property holds the actual outer HTML and not a function producing it.
+        // - Its `compiled` property holds the return value of the compiledTemplate expectation, if it has been
+        //   provided, rather than the compiledTemplate function itself.
         //
         // Before expected and actual values are compared, the test subject must be transformed to match that format.
         expected = _.extend(
@@ -348,7 +370,8 @@
             {
                 valid: true,
                 html: $template.html(),
-                outerHtml: $template.prop( "outerHTML" )
+                outerHtml: $template.prop( "outerHTML" ),
+                compiled: compiled
             } );
 
         // Finally, do the actual test.
@@ -361,9 +384,18 @@
         new Assertion( cacheEntry.outerHtml ).to.be.a( "function", "outerHtml property" );
         new Assertion( cacheEntry.outerHtml() ).to.equal( expected.outerHtml, "return value of outerHtml()" );
 
+        // Check if it has a "compiled" property matching the expectation, if provided
+        new Assertion( cacheEntry ).to.have.ownProperty( "compiled" );
+        if ( compiled ) {
+            new Assertion( cacheEntry.compiled ).to.be.a( "function", "compiled property" );
+            new Assertion( cacheEntry.compiled() ).to.equal( expected.compiled, "return value of compiled()" );
+        }
+
         // Create a clone of the test subject, with the outerHtml function being replaced by the function return value.
+        // A `compiled` function is also replaced by its return value, if it exists.
         transformed = _.clone( cacheEntry );
         transformed.outerHtml = cacheEntry.outerHtml();
+        transformed.compiled = cacheEntry.compiled && cacheEntry.compiled();
 
         // Compare the transformed test subject clone to the expected object.
         new Assertion( transformed ).to.eql( expected );

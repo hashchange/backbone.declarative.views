@@ -49,7 +49,10 @@
         clearCachedTemplate: clearCachedTemplate,
         clearCache: clearCache,
         custom: {
-            loadTemplate: undefined
+            /** @type {Function|undefined} */
+            loadTemplate: undefined,
+            /** @type {Function|undefined} */
+            compiler: undefined
         }
     };
 
@@ -277,6 +280,8 @@
             templateCache[cacheId] = {
                 html: html,
                 outerHtml: _.partial( outerHtml, cacheId, outerTagParts[0], outerTagParts[1] ),
+                compiled: _compileTemplate( html, $template ),
+
                 tagName: data.tagName,
                 className: data.className,
                 id: data.id,
@@ -290,6 +295,40 @@
         }
 
         return templateCache[cacheId];
+    }
+
+    /**
+     * Returns the compiled template if a custom compiler is set in Backbone.DeclarativeViews.custom.compiler, or
+     * undefined if no compiler is set.
+     *
+     * The compiler function is passed the inner HTML of the template node as first argument, and the $template node
+     * itself, in a jQuery wrapper, as the second argument.
+     *
+     * The compiler should return a function which can be called with the template vars as arguments, producing the
+     * final HTML. This is not enforced, though - the compiler can in fact return anything because who knows what hacks
+     * people come up with.
+     *
+     * @param   {string} html
+     * @param   {jQuery} $template
+     * @returns {Function|undefined}
+     */
+    function _compileTemplate ( html, $template ) {
+        var compiled,
+            customCompiler = Backbone.DeclarativeViews.custom.compiler;
+
+        if ( customCompiler ) {
+
+            if ( customCompiler  && !_.isFunction( customCompiler ) ) throw new Error( "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+
+            try {
+                compiled = customCompiler( html, $template );
+            } catch ( err ) {
+                throw new Error( 'An error occurred while compiling the template. The template had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
+            }
+
+        }
+
+        return compiled;
     }
 
     /**
