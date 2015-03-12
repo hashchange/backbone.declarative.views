@@ -102,10 +102,6 @@
                 expect( view.declarativeViews.getCachedTemplate().html ).to.eql( innerTemplateHtml );
             } );
 
-            it( 'its inner HTML is returned by the Marionette cache, compiled into a template function', function () {
-                expect( ( Backbone.Marionette.TemplateCache.get( "#template" ) )() ).to.equal( innerTemplateHtml );
-            } );
-
         } );
 
         describe( 'Backbone default behaviour remains unchanged', function () {

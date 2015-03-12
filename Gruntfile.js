@@ -28,9 +28,7 @@ module.exports = function(grunt) {
       build: {
         files: {
           'dist/backbone.declarative.views.js': 'src/backbone.declarative.views.js',
-          'dist/amd/backbone.declarative.views.js': 'src/amd.js',
-          'dist/extras/marionette.declarativeviews.integration.js': 'src/marionette.declarativeviews.integration.js',
-          'dist/extras/amd/marionette.declarativeviews.integration.js': 'src/amd.integration.js'
+          'dist/amd/backbone.declarative.views.js': 'src/amd.js'
         }
       },
       interactive: {
@@ -51,14 +49,6 @@ module.exports = function(grunt) {
       amd_banner: {
         src: 'dist/amd/backbone.declarative.views.js',
         dest: 'dist/amd/backbone.declarative.views.js'
-      },
-      extras: {
-        src: 'dist/extras/marionette.declarativeviews.integration.js',
-        dest: 'dist/extras/marionette.declarativeviews.integration.js'
-      },
-      extras_amd_banner: {
-        src: 'dist/extras/amd/marionette.declarativeviews.integration.js',
-        dest: 'dist/extras/amd/marionette.declarativeviews.integration.js'
       }
     },
 
@@ -77,14 +67,6 @@ module.exports = function(grunt) {
       core: {
         src: 'dist/backbone.declarative.views.js',
         dest: 'dist/backbone.declarative.views.min.js'
-      },
-      extras: {
-        src : 'dist/extras/marionette.declarativeviews.integration.js',
-        dest : 'dist/extras/marionette.declarativeviews.integration.min.js'
-      },
-      extras_amd: {
-        src: 'dist/extras/amd/marionette.declarativeviews.integration.js',
-        dest: 'dist/extras/amd/marionette.declarativeviews.integration.min.js'
       }
     },
 

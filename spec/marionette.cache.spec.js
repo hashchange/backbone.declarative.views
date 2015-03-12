@@ -2,16 +2,23 @@
 (function () {
     "use strict";
 
-    // These tests require that full Marionette integration is active, ie that marionette.declarativeviews.integration.js
-    // is loaded.
+    // These tests require that Marionette has been loaded before Backbone.Declarative.Views.
 
     describe( 'Integrated cache access of Marionette and Backbone.Declarative.Views', function () {
 
-        var View, baseTemplateHtml, $templateNode, dataAttributes, attributesAsProperties;
+        var dataAttributes, dataAttributes2, dataAttributes3,
+            $templateNode, $templateNode2, $templateNode3,
+            modifiedDataAttributes, modifiedHtml, View,
 
-        beforeEach( function () {
+            cleanup = function () {
+                Backbone.DeclarativeViews.clearCache();
+                Backbone.Marionette.TemplateCache.clear();
+            };
 
-            baseTemplateHtml = '<script id="template" type="text/x-template">This is the template <strong>markup</strong>.</script>';
+        beforeEach ( function () {
+            cleanup();
+
+            var genericTemplateTag = '<script type="text/x-template"></script>';
 
             dataAttributes = {
                 "data-tag-name": "section",
@@ -20,219 +27,63 @@
                 "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
             };
 
-            // Equivalent of the data attributes as a hash of el properties. Written out for clarity, but could simply
-            // have been transformed with the test helper function dataAttributesToProperties( dataAttributes ).
-            attributesAsProperties = {
-                tagName: "section",
-                className: "dataClass",
-                id: "dataId",
-                attributes: { lang: "en", title: "title from data attributes" }
+            dataAttributes2 = {
+                "data-tag-name": "li",
+                "data-class-name": "dataClass2",
+                "data-id": "dataId2",
+                "data-attributes": '{ "lang": "fr", "title": "title from data attributes 2" }'
             };
 
-            $templateNode = $( baseTemplateHtml ).appendTo( "body" );
-            $templateNode.attr( dataAttributes );
+            dataAttributes3 = {
+                "data-tag-name": "h2",
+                "data-class-name": "dataClass3",
+                "data-id": "dataId3",
+                "data-attributes": '{ "lang": "de", "title": "title from data attributes 3" }'
+            };
+
+            $templateNode = $( genericTemplateTag )
+                .attr( "id", "template" )
+                .attr( dataAttributes )
+                .text( "Content of template #1" )
+                .appendTo( "body" );
+
+            $templateNode2 = $( genericTemplateTag )
+                .attr( "id", "template2" )
+                .attr( dataAttributes2 )
+                .text( "Content of template #2" )
+                .appendTo( "body" );
+
+            $templateNode3 = $( genericTemplateTag )
+                .attr( "id", "template3" )
+                .attr( dataAttributes3 )
+                .text( "Content of template #3" )
+                .appendTo( "body" );
+
+            modifiedDataAttributes = {
+                "data-tag-name": "p",
+                "data-class-name": "modifiedClass",
+                "data-id": "modifiedId",
+                "data-attributes": '{ "lang": "es", "title": "title from modified data attributes" }'
+            };
+
+            modifiedHtml = "This is the modified template <strong>markup</strong>.";
 
             View = Backbone.View.extend();
 
+            // First access, priming the cache
+            new View( { template: "#template" } );
+            new View( { template: "#template2" } );
+            new View( { template: "#template3" } );
         } );
 
         afterEach( function () {
+            cleanup();
             $templateNode.remove();
-        } );
-
-        after( function () {
-            Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
-            Backbone.Marionette.TemplateCache.clear( "#template" );
-        } );
-
-        describe( 'Full Marionette integration is signalled', function () {
-
-            it( 'by the marionetteLoadTemplate flag, which is set to true, for the loader', function () {
-                expect( Backbone.DeclarativeViews._integrationFlags.marionetteLoadTemplate ).to.be.true;
-            } );
-
-            it( 'by the marionetteClearCache flag, which is set to true, for the cache clearing', function () {
-                expect( Backbone.DeclarativeViews._integrationFlags.marionetteClearCache ).to.be.true;
-            } );
-
-        } );
-
-        describe( 'The Backbone.Marionette.TemplateCache.get() method', function () {
-
-            var cleanup = function () {
-                Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#nonexistent" );
-                Backbone.Marionette.TemplateCache.clear( "#template", "#nonexistent" );
-            };
-
-            before ( cleanup );
-            after ( cleanup );
-
-            describe( 'throws an error', function () {
-
-                it( 'if the template is not specified', function () {
-                    expect( function () { Backbone.Marionette.TemplateCache.get() } ).to.throw( Error, 'Could not find template: "undefined"' );
-                } );
-
-                it( 'if an empty string is passed in as the template', function () {
-                    expect( function () { Backbone.Marionette.TemplateCache.get( "" ) } ).to.throw( Error, 'Could not find template: ""' );
-                } );
-
-                it( 'if the template is specified, but does not exist', function () {
-                    expect( function () { Backbone.Marionette.TemplateCache.get( "#nonexistent" ) } ).to.throw( Error, 'Could not find template: "#nonexistent"' );
-                } );
-
-                it( 'if the template is specified, but is a function rather than a selector', function () {
-                    var template = function () {
-                        return "<article></article>";
-                    };
-                    expect( function () { Backbone.Marionette.TemplateCache.get( template ) } ).to.throw( Error, 'Could not find template: "' + template + '"' );
-                } );
-
-                it( 'if the template is specified, but is a string containing text which is not wrapped in HTML elements', function () {
-                    var template = "This is plain text with some <strong>markup</strong>, but not wrapped in an element";
-                    expect( function () { Backbone.Marionette.TemplateCache.get( template ) } ).to.throw( Error, 'Could not find template: "' + template + '"' );
-                } );
-
-            } );
-
-            describe( 'with a template element specified by a selector', function () {
-
-                var retrieved;
-
-                beforeEach( function () {
-                    retrieved = Backbone.Marionette.TemplateCache.get( "#template" );
-                } );
-
-                it( 'returns a function...', function () {
-                    expect( retrieved ).to.be.a( "function" );
-                } );
-
-                it( '...with a return value that matches the inner HTML of the template', function () {
-                    expect( retrieved() ).to.equal( $templateNode.html() );
-                } );
-
-                it( 'indeed stores it in the Marionette cache', function () {
-                    // We test this by deleting the template node once the cache is primed, then check if we can still
-                    // retrieve the data.
-                    var expected = $templateNode.html();
-                    $templateNode.remove();
-                    expect( ( Backbone.Marionette.TemplateCache.get( "#template" ) )() ).to.eql( expected );
-                } );
-
-                it( 'stores the template in the DeclarativeViews cache as well', function () {
-                    // We need to delete the template node before querying the DeclarativeViews cache, otherwise the
-                    // cache would be primed by the query itself in any event.
-                    var origOuterHtml = $templateNode.prop( "outerHTML" );
-                    $templateNode.remove();
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.returnCacheValueFor( dataAttributes, origOuterHtml );
-                } );
-
-            } );
-
-            describe( 'with a template element specified as a raw HTML string', function () {
-
-                var retrieved;
-
-                beforeEach( function () {
-                    // Construct the HTML string
-                    var templateHtml = $( baseTemplateHtml )
-                        .attr( dataAttributes )
-                        .prop( 'outerHTML' );
-
-                    retrieved = Backbone.Marionette.TemplateCache.get( templateHtml );
-                } );
-
-                it( 'returns a function...', function () {
-                    expect( retrieved ).to.be.a( "function" );
-                } );
-
-                it( '...with a return value that matches the inner HTML of the template', function () {
-                    expect( retrieved() ).to.equal( $templateNode.html() );
-                } );
-
-                // NB We don't test the cases
-                // - "it indeed stores it in the Marionette cache"
-                // - "it stores the template in the DeclarativeViews cache as well"
-                // because we can't. Querying the caches of Marionette and DeclarativeViews would prime them anyway.
-
-            } );
-
-            describe( 'returns the compiled template', function () {
-
-                it( 'if the cache is still empty', function () {
-                    Backbone.DeclarativeViews.clearCache();
-                    Backbone.Marionette.TemplateCache.clear();
-                    expect( ( Backbone.Marionette.TemplateCache.get( "#template" ) )() ).to.eql( $templateNode.html() );
-                } );
-
-                it( 'if the cache is already primed with the requested template', function () {
-                    new View( { template: "#template" } );
-                    expect( ( Backbone.Marionette.TemplateCache.get( "#template" ) )() ).to.eql( $templateNode.html() );
-                } );
-
-            } );
-
+            $templateNode2.remove();
+            $templateNode3.remove();
         } );
 
         describe( 'The Marionette.TemplateCache.clear() method', function () {
-
-            var modifiedDataAttributes, modifiedHtml, dataAttributes2, dataAttributes3, $templateNode2, $templateNode3,
-                cleanup = function () {
-                    Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#template2", "#template3" );
-                    Backbone.Marionette.TemplateCache.clear( "#template", "#template2", "#template3" );
-                };
-
-            beforeEach ( function () {
-                cleanup();
-
-                var genericTemplateTag = '<script type="text/x-template"></script>';
-
-                modifiedDataAttributes = {
-                    "data-tag-name": "p",
-                    "data-class-name": "modifiedClass",
-                    "data-id": "modifiedId",
-                    "data-attributes": '{ "lang": "es", "title": "title from modified data attributes" }'
-                };
-
-                modifiedHtml = "This is the modified template <strong>markup</strong>.";
-
-                dataAttributes2 = {
-                    "data-tag-name": "li",
-                    "data-class-name": "dataClass2",
-                    "data-id": "dataId2",
-                    "data-attributes": '{ "lang": "fr", "title": "title from data attributes 2" }'
-                };
-
-                dataAttributes3 = {
-                    "data-tag-name": "h2",
-                    "data-class-name": "dataClass3",
-                    "data-id": "dataId3",
-                    "data-attributes": '{ "lang": "de", "title": "title from data attributes 3" }'
-                };
-
-                $templateNode2 = $( genericTemplateTag )
-                    .attr( "id", "template2" )
-                    .attr( dataAttributes2 )
-                    .text( "Content of template #2" )
-                    .appendTo( "body" );
-
-                $templateNode3 = $( genericTemplateTag )
-                    .attr( "id", "template3" )
-                    .attr( dataAttributes3 )
-                    .text( "Content of template #3" )
-                    .appendTo( "body" );
-
-                // First access, priming the cache
-                new View( { template: "#template" } );
-                new View( { template: "#template2" } );
-                new View( { template: "#template3" } );
-            } );
-
-            afterEach( function () {
-                cleanup();
-                $templateNode2.remove();
-                $templateNode3.remove();
-            } );
 
             describe( 'when called with arguments', function () {
 
@@ -318,8 +169,11 @@
                     expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( { valid: false } );
                 } );
 
-                it( 'does not clear other templates from the Marionette cache', function () {
+                it.skip( 'does not clear other templates from the Marionette cache', function () {
                     // Delete the template nodes so that their content indeed must come from the cache
+                    //
+                    // ATTN Skipped - Marionette is buggy, clears the whole cache (as of 2.4.1). This is not caused by
+                    // the Marionette integration code of Backbone.Declarative.Views.
                     $templateNode2.remove();
                     $templateNode3.remove();
 

@@ -14,13 +14,9 @@ requirejs.config( {
 
         'underscore': 'underscore/underscore',
         'backbone': 'backbone/backbone',
-
         'marionette': 'marionette/lib/backbone.marionette',
-        'handlebars': '../demo/bower_demo_components/handlebars/handlebars',
-        'marionette.handlebars': '../demo/bower_demo_components/marionette.handlebars/index',
 
         'backbone.declarative.views': '/dist/amd/backbone.declarative.views',
-        'marionette.declarativeviews.integration': '/dist/extras/amd/marionette.declarativeviews.integration',
 
         'local.base': '../demo/amd/base'
     },
@@ -36,13 +32,6 @@ requirejs.config( {
         'marionette': {
             deps: ['jquery', 'underscore', 'backbone'],
             exports: 'Marionette'
-        },
-        'handlebars': {
-            exports: 'Handlebars'
-        },
-        'marionette.handlebars': {
-            deps: ['handlebars', 'backbone', 'marionette'],
-            exports: 'MarionetteHandlebars'
         }
     }
 } );

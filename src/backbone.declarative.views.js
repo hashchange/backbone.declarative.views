@@ -1,7 +1,8 @@
 ;( function ( Backbone, _ ) {
     "use strict";
 
-    var originalConstructor = Backbone.View,
+    var originalClearCache,                     // for Marionette only
+        originalConstructor = Backbone.View,
         templateCache = {};
 
     //
@@ -142,9 +143,7 @@
     /**
      * Clears the cache as a whole.
      *
-     * Also clears the Marionette cache (if Marionette is available). Note that this is one-directional: Clearing the
-     * cache _in Marionette_ does not also clear the DeclarativeViews cache. Activate full Marionette integration for
-     * that (see below, clearCachedTemplate()).
+     * Also clears the Marionette cache (if Marionette is available).
      *
      * @param {boolean} [fromMarionette=false]  internal flag to prevent circular calls to and from Marionette
      */
@@ -176,11 +175,6 @@
      *
      * When templates are cleared here, they are removed from the Marionette template cache as well (if Marionette is
      * loaded).
-     *
-     * This is one-directional. If it is supposed to work both ways, and cache clearing in Marionette should clear the
-     * cache in Backbone.Declarative.Views as well, activate full Marionette integration. Load the provided helper,
-     * marionette.declarativeviews.integration.js, or another component taking care of that integration (e.g.
-     * Marionette.Handlebars).
      *
      * @param {...string|string[]} [templateProp]  template selector(s), or raw template HTML, identifying the cache
      *                                             entry. NB The last argument can also be an internal "fromMarionette"
@@ -409,6 +403,46 @@
             .prop( "outerHTML" )
             .replace( html, "\n" )
             .split( "\n" );
+    }
+
+    //
+    // Marionette integration
+    // ----------------------
+
+    // Only run if Marionette is available.
+    if ( Backbone.Marionette && Backbone.Marionette.TemplateCache ) {
+
+        originalClearCache = Backbone.Marionette.TemplateCache.clear;
+
+        // Custom implementation of Marionette.TemplateCache.clear()
+        //
+        // When the Marionette cache is cleared, the DeclarativeViews cache is cleared as well. This is not technically
+        // necessary, but makes sense. If there is a reason to invalidate the cached template, it applies to all caches.
+
+        Backbone.Marionette.TemplateCache.clear = function () {
+            if ( arguments.length ) {
+                Backbone.DeclarativeViews.clearCachedTemplate( arguments, true );
+            } else {
+                Backbone.DeclarativeViews.clearCache( true );
+            }
+
+            originalClearCache.apply( this, arguments );
+        };
+
+        // Removed: integration of the Marionette and Backbone.Declarative.Views template loading mechanisms
+        //
+        // Integrating the template loaders brought little or no benefit, but could potentially cause problems with
+        // other custom loaders. In particular,
+        //
+        // - Integration saved exactly one DOM access per *template*. Given the limited number of templates in a project,
+        //   the performance gain is usually too small to even be measurable.
+        // - During testing with just a single template, integration and the associated overhead even seemed to slow
+        //   things down.
+        // - When custom loaders are used, e.g. for Handlebars, load order matters. That code must be loaded after
+        //   Marionette integration. Otherwise, it would be overwritten, breaking the application.
+        //
+        // In a nutshell, loader integration is more trouble than it is worth.
+
     }
 
 

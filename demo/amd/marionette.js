@@ -1,3 +1,13 @@
+requirejs.config( {
+
+    shim: {
+        'backbone.declarative.views': {
+            deps: ['marionette']
+        }
+    }
+
+} );
+
 require( [
 
     'underscore',
