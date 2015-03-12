@@ -282,7 +282,6 @@
      * - the expected properties and values for a given set of data attributes
      * - the template HTML structure (html, outerHtml) for a given outer HTML
      * - a "compiled" property which is undefined by default, or holds a function returning the final HTML
-     * - a valid: true property
      *
      * The expected outerHtml string needn't have the data attributes applied - this is handled by the assertion. Data
      * attributes set on the outerHtml are ignored. In fact, they are removed from the outerHtml string, and replaced by
@@ -368,7 +367,6 @@
         expected = _.extend(
             dataAttributesToProperties( dataAttributes ),
             {
-                valid: true,
                 html: $template.html(),
                 outerHtml: $template.prop( "outerHTML" ),
                 compiled: compiled

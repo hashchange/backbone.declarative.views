@@ -68,21 +68,21 @@
             before ( cleanup );
             after ( cleanup );
 
-            describe( 'returns a hash containing just a valid: false property', function () {
+            describe( 'returns undefined', function () {
 
                 it( 'if the template is not specified', function () {
                     view = new View();
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
                 } );
 
                 it( 'if an empty string is passed in as the template', function () {
                     view = new View( { template: "" } );
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
                 } );
 
                 it( 'if the template is specified, but does not exist', function () {
                     view = new View( { template: "#nonexistent" } );
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
                 } );
 
                 it( 'if the template is specified, but is a function rather than a selector', function () {
@@ -91,12 +91,12 @@
                     } } );
                     view = new View();
 
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
                 } );
 
                 it( 'if the template is specified, but is a string containing text which is not wrapped in HTML elements', function () {
                     view = new View( { template: "This is plain text with some <strong>markup</strong>, but not wrapped in an element" } );
-                    expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
                 } );
 
             } );
@@ -108,8 +108,8 @@
                 } );
 
 
-                it( 'returns a hash which is flagged as valid', function () {
-                    expect( view.declarativeViews.getCachedTemplate() ).to.have.a.property( "valid", true );
+                it( 'returns an object', function () {
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.an( "object" );
                 } );
 
                 it( 'returns the el properties described in the template', function () {
@@ -142,8 +142,8 @@
                     view = new View( { template: templateHtml } );
                 } );
 
-                it( 'returns a hash which is flagged as valid', function () {
-                    expect( view.declarativeViews.getCachedTemplate() ).to.have.a.property( "valid", true );
+                it( 'returns an object', function () {
+                    expect( view.declarativeViews.getCachedTemplate() ).to.be.an( "object" );
                 } );
 
                 it( 'returns the el properties described in the template', function () {
@@ -169,7 +169,7 @@
                     Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
                     View = Backbone.View.extend( {
                         initialize: function () {
-                            this.cachedTemplate = this.declarativeViews.getCachedTemplate();
+                            this.cachedTemplate = _.clone( this.declarativeViews.getCachedTemplate() );
                         }
                     } );
                 } );
@@ -178,17 +178,12 @@
                     View = View.extend( { template: "#template" } );
                     view = new View();
 
-                    expect( view.cachedTemplate ).to.be.an( "object" );
-                    expect( view.cachedTemplate.html ).to.equal( $templateNode.html() );
-                    expect( view.cachedTemplate.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
+                    expect( view.cachedTemplate ).to.returnCacheValueFor( dataAttributes, $templateNode );
                 } );
 
                 it( 'when the template is passed in as an option', function () {
                     view = new View( { template: "#template" } );
-
-                    expect( view.cachedTemplate ).to.be.an( "object" );
-                    expect( view.cachedTemplate.html ).to.equal( $templateNode.html() );
-                    expect( view.cachedTemplate.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
+                    expect( view.cachedTemplate ).to.returnCacheValueFor( dataAttributes, $templateNode );
                 } );
 
             } );
@@ -243,18 +238,18 @@
             before ( cleanup );
             after ( cleanup );
 
-            describe( 'returns a hash containing just a valid: false property', function () {
+            describe( 'returns undefined', function () {
 
                 it( 'if the template is not specified', function () {
-                    expect( Backbone.DeclarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate() ).to.be.undefined;
                 } );
 
                 it( 'if an empty string is passed in as the template', function () {
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "" ) ).to.eql( { valid: false } );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "" ) ).to.be.undefined;
                 } );
 
                 it( 'if the template is specified, but does not exist', function () {
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#nonexistent" ) ).to.eql( { valid: false } );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#nonexistent" ) ).to.be.undefined;
                 } );
 
                 it( 'if the template is specified, but is a function rather than a selector', function () {
@@ -262,12 +257,12 @@
                         return "<article></article>";
                     };
 
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( template ) ).to.eql( { valid: false } );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( template ) ).to.be.undefined;
                 } );
 
                 it( 'if the template is specified, but is a string containing text which is not wrapped in HTML elements', function () {
                     var template = "This is plain text with some <strong>markup</strong>, but not wrapped in an element";
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( template ) ).to.eql( { valid: false } );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( template ) ).to.be.undefined;
                 } );
 
             } );
@@ -280,8 +275,8 @@
                     retrieved = Backbone.DeclarativeViews.getCachedTemplate( "#template" );
                 } );
 
-                it( 'returns a hash which is flagged as valid', function () {
-                    expect( retrieved ).to.have.a.property( "valid", true );
+                it( 'returns an object', function () {
+                    expect( retrieved ).to.be.an( "object" );
                 } );
 
                 it( 'returns the el properties described in the template', function () {
@@ -313,8 +308,8 @@
                     retrieved = Backbone.DeclarativeViews.getCachedTemplate( templateHtml );
                 } );
 
-                it( 'returns a hash which is flagged as valid', function () {
-                    expect( retrieved ).to.have.a.property( "valid", true );
+                it( 'returns an object', function () {
+                    expect( retrieved ).to.be.an( "object" );
                 } );
 
                 it( 'returns the el properties described in the template', function () {
@@ -338,7 +333,7 @@
                 var expected;
 
                 beforeEach( function () {
-                    expected = _.extend( { valid: true, html: $templateNode.html() }, attributesAsProperties  )
+                    expected = _.extend( { html: $templateNode.html() }, attributesAsProperties  )
                 } );
 
                 it( 'if the cache is still empty', function () {
@@ -399,8 +394,8 @@
             // string, it automatically gets recreated. The return value is the same, whether the result came from an
             // existing cache entry or from the fresh input.
             //
-            // (For selector strings, that is different. If the template node is deleted when the cache is empty, the
-            // original template _won't_ be recreated.)
+            // (For selector strings, that is different. If the template node is deleted once the cache is empty, the
+            // original template _can't_ be recreated.)
 
             var cleanup = function () {
                 Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#template2", "#template3" );
@@ -417,10 +412,10 @@
 
             it( 'clears a given template from the cache if the template string is a selector', function () {
                 // We test this by deleting the template node after first access, then clearing the cache.
-                // On second access, the cache should return { valid: false } for the selector.
+                // On second access, the cache should return undefined for the selector.
                 $templateNode.remove();
                 view.declarativeViews.clearCachedTemplate();
-                expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
             } );
 
             it( 'allows changes made to the underlying template node to be picked up', function () {
@@ -554,8 +549,8 @@
                 // Second call, should go ahead without error
                 view.declarativeViews.clearCachedTemplate();
 
-                // Checking that the cache is still empty, and querying it returns the expected placeholder hash
-                expect( view.declarativeViews.getCachedTemplate() ).to.eql( { valid: false } );
+                // Checking that the cache is still empty, and querying it returns undefined
+                expect( view.declarativeViews.getCachedTemplate() ).to.be.undefined;
             } );
 
         } );
@@ -569,8 +564,8 @@
             // string, it automatically gets recreated. The return value is the same, whether the result came from an
             // existing cache entry or from the fresh input.
             //
-            // (For selector strings, that is different. If the template node is deleted when the cache is empty, the
-            // original template _won't_ be recreated.)
+            // (For selector strings, that is different. If the template node is deleted once the cache is empty, the
+            // original template _can't_ be recreated.)
 
             var dataAttributes2, dataAttributes3, $templateNode2, $templateNode3,
                 cleanup = function () {
@@ -622,10 +617,10 @@
 
             it( 'clears a given template from the cache if the template string is a selector', function () {
                 // We test this by deleting the template node after first access, then clearing the cache.
-                // On second access, the cache should return { valid: false } for the selector.
+                // On second access, the cache should return undefined for the selector.
                 $templateNode.remove();
                 Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( { valid: false } );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
             } );
 
             it( 'allows changes made to the underlying template node to be picked up', function () {
@@ -649,9 +644,9 @@
 
                 Backbone.DeclarativeViews.clearCachedTemplate( "#template", "#template2", "#template3" );
 
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( { valid: false } );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( { valid: false } );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( { valid: false } );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.be.undefined;
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.be.undefined;
             } );
 
             it( 'clears multiple templates from the cache when the selectors are passed as an array', function () {
@@ -661,9 +656,9 @@
 
                 Backbone.DeclarativeViews.clearCachedTemplate( [ "#template", "#template2", "#template3" ] );
 
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( { valid: false } );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( { valid: false } );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( { valid: false } );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.be.undefined;
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.be.undefined;
             } );
 
             it( 'does not clear other templates from the cache', function () {
@@ -692,8 +687,8 @@
                 // Second call, should go ahead without error
                 Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
 
-                // Checking that the cache is still empty, and querying it returns the expected placeholder hash
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( { valid: false } );
+                // Checking that the cache is still empty, and querying it returns undefined
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
             } );
 
             it( 'fails silently if the template is a string containing text which is not wrapped in HTML elements (uncacheable string), and leaves the existing cache intact', function () {
@@ -786,16 +781,16 @@
 
             it( 'clears the entire cache', function () {
                 // We test this by deleting all template nodes after first access, then clearing the cache.
-                // On second access, the cache should return { valid: false } for each selector.
+                // On second access, the cache should return undefined for each selector.
                 $templateNode.remove();
                 $templateNode2.remove();
                 $templateNode3.remove();
 
                 Backbone.DeclarativeViews.clearCache();
 
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.eql( { valid: false } );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.eql( { valid: false } );
-                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.eql( { valid: false } );
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.be.undefined;
+                expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.be.undefined;
             } );
 
         } );

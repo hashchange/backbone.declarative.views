@@ -168,13 +168,13 @@
 
             it( 'When the custom loader returns a value without throwing an error, but that value is not a jQuery object, a friendly error is thrown', function () {
                 Backbone.DeclarativeViews.custom.loadTemplate = function () { return "<div>Returned template HTML is not wrapped in jQuery object</div>" };
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid return value. Custom loadTemplate function must return a jQuery instance" );
+                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid return value. The custom loadTemplate function must return a jQuery instance" );
             } );
 
             it( 'When the custom loader returns undefined without throwing an error', function () {
                 Backbone.DeclarativeViews.custom.loadTemplate = function () {};
                 View = Backbone.View.extend( { template: "#returnsVoid" } );
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid return value. Custom loadTemplate function must return a jQuery instance" );
+                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid return value. The custom loadTemplate function must return a jQuery instance" );
             } );
 
         } );

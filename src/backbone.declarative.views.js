@@ -12,19 +12,23 @@
     _.extend( Backbone.View.prototype, {
 
         tagName: function () {
-            return getViewTemplateData( this ).tagName || "div";
+            var data = getViewTemplateData( this ) || {};
+            return data.tagName || "div";
         },
 
         className: function () {
-            return getViewTemplateData( this ).className || undefined;
+            var data = getViewTemplateData( this ) || {};
+            return data.className || undefined;
         },
 
         id: function () {
-            return getViewTemplateData( this ).id || undefined;
+            var data = getViewTemplateData( this ) || {};
+            return data.id || undefined;
         },
 
         attributes: function () {
-            return getViewTemplateData( this ).attributes || undefined;
+            var data = getViewTemplateData( this ) || {};
+            return data.attributes || undefined;
         }
 
     } );
@@ -63,14 +67,12 @@
 
     /**
      * Returns the template data associated with a template property string. Caches it in the process, or retrieves it
-     * from the cache if already available.
+     * from the cache if already available. Returns undefined if there is no cacheable template data.
      *
      * Return values are the same as in getViewTemplateData. See there for details.
      *
-     * If there is no cacheable template data, the hash { valid: false } is returned.
-     *
      * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
-     * @returns {CachedTemplateData|Uncacheable}
+     * @returns {CachedTemplateData|undefined}
      */
     function getTemplateData ( templateProp ) {
         var data;
@@ -80,8 +82,8 @@
             data = templateCache[ templateProp ];
             if ( ! data ) data = _createTemplateCache( templateProp );
 
-        } else {
-            data = { valid: false };
+            if ( data.invalid ) data = undefined;
+
         }
 
         return data;
@@ -89,8 +91,7 @@
 
     /**
      * Returns the template data associated with a given view, provided that the template has been passed as a string
-     * and is cacheable. Otherwise, the returned hash is empty except for a `valid` flag, which is false. Manages
-     * caching behind the scenes.
+     * and is cacheable. Otherwise, it returns undefined. Manages caching behind the scenes.
      *
      * To be cacheable, the template property or option must be
      *
@@ -99,16 +100,28 @@
      *
      * The template data is returned as a hash with the following properties:
      *
-     * - html (string) - the actual template content if the template has been specified by selector
-     * - tagName (string)
-     * - className (string)
-     * - attributes (hash of attributes and their values)
-     * - valid (boolean, always true) - flag which signals that the data is a valid representation of the template
+     * - html (string):
+     *     the actual template content if the template has been specified with a selector, or the inner HTML of a raw
+     *     HTML template string
      *
-     * If there is no cacheable template data, the hash { valid: false } is returned.
+     * - outerHtml (function)
+     *     a function returning the full (outer) HTML of the template
+     *
+     * - compiled (function, or undefined)
+     *     the compiled template (ie, a function returning the final HTML, with the template vars filled in) if a
+     *     template compiler has been specified in Backbone.DeclarativeViews.custom.compiler. Or undefined, otherwise.
+     *
+     * - tagName (string or undefined)
+     *     the tag to be used for the el, if specified as a data attribute of the template
+     *
+     * - className (string or undefined)
+     *     the class name of the el, if specified
+     *
+     * - attributes (hash or undefined)
+     *     hash of el attributes and their values, if specified
      *
      * @param   {Backbone.View} view
-     * @returns {CachedTemplateData|Uncacheable}
+     * @returns {CachedTemplateData|undefined}
      */
     function getViewTemplateData ( view ) {
         var data,
@@ -126,7 +139,7 @@
 
             } else {
 
-                data = { valid: false };
+                data = undefined;
 
                 meta.processed = true;
                 meta.inGlobalCache = false;
@@ -134,7 +147,7 @@
             }
 
         } else {
-            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp ) : { valid: false };
+            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp ) : undefined;
         }
 
         return data;
@@ -202,7 +215,7 @@
 
             // Dealing with a single templateProp argument.
             //
-            // Delete the corresponding cache entry.  Try to clear it from the Marionette cache as well. The
+            // Delete the corresponding cache entry. Try to clear it from the Marionette cache as well. The
             // templateProp must be a string - non-string arguments are quietly ignored.
             if ( _.isString( templateProp ) ) {
 
@@ -238,9 +251,9 @@
     /**
      * Creates a cache entry for a given template property.
      *
-     * Returns the cached entry if creating it has succeeded. In case of failure, it returns the hash { valid: false }.
-     * It signals that the returned hash, as well as the cache itself, does not contain valid data for the template
-     * property.
+     * Returns the cached entry if creating it has succeeded. In case of failure, it returns the hash { invalid: true }.
+     * It signals that the template has been processed, but that the returned hash, as well as the cache itself, does
+     * not contain valid data for the template property.
      *
      * The creation of a cache entry can fail if the template property is an empty string, or a selector which doesn't
      * match anything, or a string which jQuery can't process.
@@ -261,7 +274,7 @@
             $template = "";
         }
 
-        if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new Error( "Invalid return value. Custom loadTemplate function must return a jQuery instance, but it hasn't" );
+        if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new Error( "Invalid return value. The custom loadTemplate function must return a jQuery instance, but it hasn't" );
 
         if ( $template.length ) {
 
@@ -269,23 +282,21 @@
             data = _getDataAttributes( $template ) ;
 
             html = $template.html();
-            outerTagParts = getOuterTagParts( $template, html );
+            outerTagParts = _getOuterTagParts( $template, html );
 
             templateCache[cacheId] = {
                 html: html,
-                outerHtml: _.partial( outerHtml, cacheId, outerTagParts[0], outerTagParts[1] ),
+                outerHtml: _.partial( _outerHtml, cacheId, outerTagParts[0], outerTagParts[1] ),
                 compiled: _compileTemplate( html, $template ),
 
                 tagName: data.tagName,
                 className: data.className,
                 id: data.id,
-                attributes: data.attributes,
-
-                valid: true
+                attributes: data.attributes
             };
 
         } else {
-            templateCache[cacheId] = { valid: false };
+            templateCache[cacheId] = { invalid: true };
         }
 
         return templateCache[cacheId];
@@ -317,7 +328,7 @@
             try {
                 compiled = customCompiler( html, $template );
             } catch ( err ) {
-                throw new Error( 'An error occurred while compiling the template. The template had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
+                throw new Error( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
             }
 
         }
@@ -346,6 +357,10 @@
      *
      * So here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
      * picked up.
+     *
+     * NB The update is limited to the data attributes describing the el, which are "owned" by Backbone.Declarative.Views.
+     * Other HTML5 data-* attributes are not updated in the jQuery cache because it would interfere with the
+     * responsibilities of other code.
      *
      * @param   {jQuery} $elem
      * @returns {Object}
@@ -381,7 +396,7 @@
      * @param   {string} closingTag
      * @returns {string}
      */
-    function outerHtml ( cacheId, openingTag, closingTag ) {
+    function _outerHtml ( cacheId, openingTag, closingTag ) {
         return openingTag + templateCache[cacheId].html + closingTag;
     }
 
@@ -389,15 +404,15 @@
      * Returns the opening and closing tag of the template node, given the $template. Returns them in an array
      * (0: opening tag, 1: closing tag).
      *
-     * If the inner HTML of the template has already been extracted in the calling code, it is more efficient to pass it
+     * If the inner HTML of the template has already been extracted by the calling code, it is more efficient to pass it
      * in as well.
      *
      * @param   {jQuery} $template
      * @param   {string} [html]     the inner HTML of the template node, if already available
      * @returns {string[]}
      */
-    function getOuterTagParts ( $template, html ) {
-        if ( ! html ) html = $template.html();
+    function _getOuterTagParts ( $template, html ) {
+        if ( html === undefined ) html = $template.html();
 
         return $template
             .prop( "outerHTML" )
@@ -417,7 +432,7 @@
         // Custom implementation of Marionette.TemplateCache.clear()
         //
         // When the Marionette cache is cleared, the DeclarativeViews cache is cleared as well. This is not technically
-        // necessary, but makes sense. If there is a reason to invalidate the cached template, it applies to all caches.
+        // necessary, but makes sense. If there is a reason to invalidate a cached template, it applies to all caches.
 
         Backbone.Marionette.TemplateCache.clear = function () {
             if ( arguments.length ) {
@@ -431,17 +446,21 @@
 
         // Removed: integration of the Marionette and Backbone.Declarative.Views template loading mechanisms
         //
-        // Integrating the template loaders brought little or no benefit, but could potentially cause problems with
-        // other custom loaders. In particular,
+        // Integrating the template loaders turned out to be of little or no benefit, and could potentially have caused
+        // problems with other custom loaders. In detail:
         //
         // - Integration saved exactly one DOM access per *template*. Given the limited number of templates in a project,
-        //   the performance gain is usually too small to even be measurable.
-        // - During testing with just a single template, integration and the associated overhead even seemed to slow
-        //   things down.
-        // - When custom loaders are used, e.g. for Handlebars, load order matters. That code must be loaded after
-        //   Marionette integration. Otherwise, it would be overwritten, breaking the application.
+        //   the performance gain had often been too small to even be measurable.
         //
-        // In a nutshell, loader integration is more trouble than it is worth.
+        // - During testing with just a single template, the net effect was even negative (!) - integration and the
+        //   associated overhead seemed to slow things down.
+        //
+        // - With integration, custom loaders like the one for Marionette/Handlebars had been trickier to use. Load
+        //   order suddenly mattered. The code setting up a custom loader had to be run after integrating
+        //   Backbone.Declarative.Views with Marionette. Otherwise, the custom loader would haven been overwritten,
+        //   breaking the application.
+        //
+        // In a nutshell, loader integration has proven to be more trouble than it is worth.
 
     }
 
@@ -456,19 +475,20 @@
      * @name  CachedTemplateData
      * @type  {Object}
      *
-     * @property {string}  html
-     * @property {string}  tagName
-     * @property {string}  className
-     * @property {string}  id
-     * @property {Object}  attributes
-     * @property {boolean} valid            always true
+     * @property {string}              html
+     * @property {Function}            outerHtml
+     * @property {Function|undefined}  compiled
+     * @property {string|undefined}    tagName
+     * @property {string|undefined}    className
+     * @property {string|undefined}    id
+     * @property {Object|undefined}    attributes
      */
 
     /**
      * @name  Uncacheable
      * @type  {Object}
      *
-     * @property {boolean} valid            always false
+     * @property {boolean} invalid     always true
      */
 
 }( Backbone, _ ));
