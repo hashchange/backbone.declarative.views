@@ -69,7 +69,7 @@
      * Returns the template data associated with a template property string. Caches it in the process, or retrieves it
      * from the cache if already available. Returns undefined if there is no cacheable template data.
      *
-     * Return values are the same as in getViewTemplateData. See there for details.
+     * The template data is returned as a hash. For a list of properties, see readme.
      *
      * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
      * @returns {CachedTemplateData|undefined}
@@ -98,27 +98,7 @@
      * - a selector for the template element (and the element must actually exist)
      * - a raw HTML string which can be turned into a template element
      *
-     * The template data is returned as a hash with the following properties:
-     *
-     * - html (string):
-     *     the actual template content if the template has been specified with a selector, or the inner HTML of a raw
-     *     HTML template string
-     *
-     * - outerHtml (function)
-     *     a function returning the full (outer) HTML of the template
-     *
-     * - compiled (function, or undefined)
-     *     the compiled template (ie, a function returning the final HTML, with the template vars filled in) if a
-     *     template compiler has been specified in Backbone.DeclarativeViews.custom.compiler. Or undefined, otherwise.
-     *
-     * - tagName (string or undefined)
-     *     the tag to be used for the el, if specified as a data attribute of the template
-     *
-     * - className (string or undefined)
-     *     the class name of the el, if specified
-     *
-     * - attributes (hash or undefined)
-     *     hash of el attributes and their values, if specified
+     * The template data is returned as a hash. For a list of properties, see readme.
      *
      * @param   {Backbone.View} view
      * @returns {CachedTemplateData|undefined}
@@ -177,7 +157,7 @@
      * - a template selector
      * - raw HTML of a template, if that's what the template property held when a view made use of it.
      *
-     * A template selectors must be identical to the one which was used when creating the cache entry, ie the selector
+     * A template selector must be identical to the one which was used when creating the cache entry, ie the selector
      * specified in the template property or template option of a view. Mere selector equivalence (e.g. "#template" and
      * "script#template") won't match the cache.
      *
