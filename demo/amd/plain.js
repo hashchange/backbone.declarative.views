@@ -19,8 +19,8 @@ require( [
             template: "#item-template",
 
             initialize: function ( options ) {
-                var compiledTemplate = this.declarativeViews.getCachedTemplate().compiled;
-                this.template = compiledTemplate || _.template( this.declarativeViews.getCachedTemplate(). html );
+                var cachedTemplate = this.declarativeViews.getCachedTemplate();
+                this.template = cachedTemplate.compiled || _.template( cachedTemplate.html );
             },
 
             render: function () {
