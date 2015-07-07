@@ -483,6 +483,10 @@ New test files in the `spec` directory are picked up automatically, no need to e
 
 ## Release Notes
 
+### v2.0.1
+
+- Updated Backbone dependency
+
 ### v2.0.0
 
 - Added safe and transparent template caching, significant speed gains
