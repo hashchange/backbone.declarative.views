@@ -1,3 +1,5 @@
+// marionette.js
+
 requirejs.config( {
 
     shim: {
@@ -32,7 +34,7 @@ require( [
             parent: ".container",
 
             initialize: function ( options ) {
-                options || ( options = {} );
+                options || ( options = {} );                                // jshint ignore:line
 
                 if ( options.parent ) this.parent = options.parent;
                 this.$parent = Backbone.$( this.parent );
