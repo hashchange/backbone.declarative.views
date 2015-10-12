@@ -49,7 +49,7 @@
         new Assertion( Backbone ).to.be.an( 'object', "Global variable 'Backbone' not available" );
 
         // Verify that the subject has an el property, and that the el is initialized
-        new Assertion( subject.el ).to.be.an( 'object', "The 'el' property of the view appears to be missing" );
+        new Assertion( subject.el ).to.be.an.instanceof( HTMLElement, "The 'el' property of the view appears to be missing" );
 
         // Examine el
         if ( elProperties.tagName ) {
