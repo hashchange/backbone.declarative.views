@@ -544,7 +544,7 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 MIT.
 
-Copyright (c) 2014, 2015 Michael Heim.
+Copyright (c) 2014-2016 Michael Heim.
 
 [Backbone]: http://backbonejs.org/ "Backbone.js"
 [Marionette]: https://github.com/marionettejs/backbone.marionette#readme "Marionette: a composite application library for Backbone.js"
