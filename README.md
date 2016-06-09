@@ -499,6 +499,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v2.0.3
+
+- Updated Backbone and jQuery dependencies
+
 ### v2.0.1
 
 - Updated Backbone dependency
