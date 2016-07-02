@@ -53,6 +53,9 @@
         getCachedTemplate: getTemplateData,
         clearCachedTemplate: clearCachedTemplate,
         clearCache: clearCache,
+        defaults: {
+            loadTemplate: loadTemplate
+        },
         custom: {
             /** @type {Function|undefined} */
             loadTemplate: undefined,
@@ -229,6 +232,17 @@
     }
 
     /**
+     * Defines the default template loader. Accepts a selector string, or anything which can be processed by jQuery, and
+     * returns the template node (usually a <script> or <template> node) in a jQuery wrapper.
+     *
+     * @param   {string|jQuery|HTMLElement} templateProperty
+     * @returns {jQuery}
+     */
+    function loadTemplate ( templateProperty ) {
+        return Backbone.$( templateProperty );
+    }
+
+    /**
      * Creates a cache entry for a given template property.
      *
      * Returns the cached entry if creating it has succeeded. In case of failure, it returns the hash { invalid: true }.
@@ -246,10 +260,11 @@
     function _createTemplateCache( templateProp ) {
         var $template, data, html, outerTagParts,
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
+            defaultLoader = Backbone.DeclarativeViews.defaults.loadTemplate,
             cacheId = templateProp;
 
         try {
-            $template = customLoader ? customLoader( templateProp ) : Backbone.$( templateProp );
+            $template = customLoader ? customLoader( templateProp ) : defaultLoader( templateProp );
         } catch ( err ) {
             $template = "";
         }

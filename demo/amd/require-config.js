@@ -18,7 +18,9 @@ requirejs.config( {
 
         'backbone.declarative.views': '/dist/amd/backbone.declarative.views',
 
-        'local.base': '../demo/amd/base'
+        'local.base': '../demo/amd/base',
+        'local.views-backbone': '../demo/amd/views-backbone',
+        'local.views-marionette': '../demo/amd/views-marionette'
     },
 
     shim: {

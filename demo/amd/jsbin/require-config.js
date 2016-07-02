@@ -11,7 +11,9 @@ requirejs.config( {
 
         'backbone.declarative.views': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.0.2/dist/amd/backbone.declarative.views',
 
-        'local.base': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.0.2/demo/amd/base'
+        'local.base': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/base',
+        'local.views-backbone': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-backbone',
+        'local.views-marionette': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-marionette'
     },
 
     shim: {
