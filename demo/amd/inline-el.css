@@ -1,0 +1,27 @@
+h2 {
+    font-size: 1.25rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+li.item {
+    height: 4rem;
+    line-height: 2rem;
+}
+
+/* Very specific selectors, show that all template `el`s have been recognized and are set up correctly */
+.ok,
+.container>ul#unordered-list-backbone.list.small-block-grid-4.medium-block-grid-8.large-block-grid-10>li.item[contenteditable="true"][lang="en"],
+.container>ul#unordered-list-marionette.list.small-block-grid-4.medium-block-grid-8.large-block-grid-10>li.item[contenteditable="true"][lang="en"],
+.report>p.conventional {
+    background-color: green;
+}
+
+.failure,
+li.item,
+.report p {
+    background-color: red;
+}
+
+
+

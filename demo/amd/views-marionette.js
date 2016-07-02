@@ -1,5 +1,3 @@
-// views-marionette.js
-
 requirejs.config( {
 
     shim: {
@@ -21,7 +19,15 @@ define( [
 
 ], function ( _, Backbone, Marionette, performance, base ) {
 
-    var ItemView = Marionette.ItemView,
+    var ItemView = Marionette.ItemView.extend( {
+        
+            appendTo: function ( $parent ) {
+                if ( !( $parent instanceof Backbone.$ ) ) $parent = Backbone.$( $parent );
+                $parent.append( this.$el );
+                return this;
+            }
+        
+        } ),
 
         ListView = Marionette.CollectionView.extend( {
             

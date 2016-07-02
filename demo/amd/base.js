@@ -63,6 +63,8 @@ define( [
 
         } );
 
+    Backbone.DeclarativeViews.custom.compiler = _.template;
+
     return {
         Model: Model,
         Collection: Collection,

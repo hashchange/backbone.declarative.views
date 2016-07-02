@@ -1,5 +1,3 @@
-// views-backbone.js
-
 define( [
     
     'underscore',
@@ -10,19 +8,21 @@ define( [
 
 ], function ( _, Backbone, performance, base ) {
 
-    Backbone.DeclarativeViews.custom.compiler = function ( templateHtml ) {
-        return _.template( templateHtml );
-    };
-
     var ItemView = Backbone.View.extend( {
 
             initialize: function ( options ) {
-                var cachedTemplate = this.declarativeViews.getCachedTemplate();
-                this.template = cachedTemplate.compiled || _.template( cachedTemplate.html );
+                this.template = this.declarativeViews.getCachedTemplate().compiled;
             },
 
             render: function () {
                 this.$el.html( this.template( this.model.attributes ) );
+                return this;
+            },
+
+            appendTo: function ( $parent ) {
+                if ( !( $parent instanceof Backbone.$ ) ) $parent = Backbone.$( $parent );
+                $parent.append( this.$el );
+                return this;
             }
 
         } ),
