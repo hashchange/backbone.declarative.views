@@ -3,7 +3,12 @@
 
     var originalClearCache,                     // for Marionette only
         originalConstructor = Backbone.View,
-        templateCache = {};
+        templateCache = {},
+        
+        GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
+        TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
+        CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
+        CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" );
 
     //
     // Core functionality and API
@@ -53,6 +58,12 @@
         getCachedTemplate: getTemplateData,
         clearCachedTemplate: clearCachedTemplate,
         clearCache: clearCache,
+        
+        Error: GenericError,
+        TemplateError: TemplateError,
+        CompilerError: CompilerError,
+        CustomizationError: CustomizationError,
+        
         defaults: {
             loadTemplate: loadTemplate
         },
@@ -194,7 +205,7 @@
             _.each( templateProp, function ( singleProp ) { clearCachedTemplate( singleProp, fromMarionette ); } );
         } else {
 
-            if ( ! templateProp ) throw new Error( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
+            if ( ! templateProp ) throw new GenericError( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
 
             // Dealing with a single templateProp argument.
             //
@@ -266,10 +277,13 @@
         try {
             $template = customLoader ? customLoader( templateProp ) : defaultLoader( templateProp );
         } catch ( err ) {
+            // Rethrow and exit if the alarm has been raised deliberately, using an error type of Backbone.DeclarativeViews.
+            if( _isDeclarativeViewsErrorType( err ) ) throw err;
+            // Otherwise, continue without having fetched a template.
             $template = "";
         }
 
-        if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new Error( "Invalid return value. The custom loadTemplate function must return a jQuery instance, but it hasn't" );
+        if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new CustomizationError( "Invalid return value. The custom loadTemplate function must return a jQuery instance, but it hasn't" );
 
         if ( $template.length ) {
 
@@ -318,12 +332,12 @@
 
         if ( customCompiler ) {
 
-            if ( customCompiler  && !_.isFunction( customCompiler ) ) throw new Error( "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+            if ( customCompiler  && !_.isFunction( customCompiler ) ) throw new CustomizationError( "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
 
             try {
                 compiled = customCompiler( html, $template );
             } catch ( err ) {
-                throw new Error( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
+                throw new CompilerError( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
             }
 
         }
@@ -415,6 +429,21 @@
             .split( "\n" );
     }
 
+    /**
+     * Checks if an error belongs to the error types of Backbone.DeclarativeViews.
+     *
+     * ATTN Update this check as new error types are added to Backbone.DeclarativeViews.
+     *
+     * @param   {Object}  error
+     * @returns {boolean}
+     */
+    function _isDeclarativeViewsErrorType ( error ) {
+        return error instanceof GenericError ||
+               error instanceof TemplateError ||
+               error instanceof CompilerError ||
+               error instanceof CustomizationError;
+    }
+
     //
     // Marionette integration
     // ----------------------
@@ -457,6 +486,37 @@
         //
         // In a nutshell, loader integration has proven to be more trouble than it is worth.
 
+    }
+
+    //
+    // Generic helpers
+    // ---------------
+
+    /**
+     * Creates and returns a custom error type.
+     *
+     * See gist at https://gist.github.com/hashchange/4c1ce239570c77e698c1d2df09d0e540
+     *
+     * @param   {string} name  of the error type
+     * @returns {Error}
+     */
+    function createCustomErrorType ( name ) {
+
+        function CustomError ( message ) {
+            this.message = message;
+
+            if ( Error.captureStackTrace ) {
+                Error.captureStackTrace( this, this.constructor );
+            } else {
+                this.stack = ( new Error() ).stack;
+            }
+        }
+
+        CustomError.prototype = new Error();
+        CustomError.prototype.name = name;
+        CustomError.prototype.constructor = CustomError;
+
+        return CustomError;
     }
 
 

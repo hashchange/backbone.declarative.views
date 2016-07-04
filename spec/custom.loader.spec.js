@@ -117,7 +117,10 @@
                 expect( View ).to.createElWithStandardMechanism;
             } );
 
-            it( 'when the view references a template with a string that the custom loader cannot process, throwing an error', function () {
+            it( 'when the view references a template with a string that the custom loader cannot process, throwing a generic error', function () {
+                // NB ... but if the loader raises the alarm deliberately and throws one of the error types belonging to
+                // Backbone.DeclarativeViews, business as usual is over: the exception is rethrown and bubbles up. See
+                // test further below.
                 Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Error( "loadTemplate blew up" ); };
                 View = Backbone.View.extend( { template: "#throwsError" } );
                 expect( View ).to.createElWithStandardMechanism;
@@ -166,15 +169,46 @@
 
         describe( 'Custom loader error checking', function () {
 
-            it( 'When the custom loader returns a value without throwing an error, but that value is not a jQuery object, a friendly error is thrown', function () {
-                Backbone.DeclarativeViews.custom.loadTemplate = function () { return "<div>Returned template HTML is not wrapped in jQuery object</div>" };
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid return value. The custom loadTemplate function must return a jQuery instance" );
+            describe( 'A friendly error is thrown', function () {
+
+                it( 'when the custom loader returns a value without throwing an error, but that value is not a jQuery object', function () {
+                    Backbone.DeclarativeViews.custom.loadTemplate = function () { return "<div>Returned template HTML is not wrapped in jQuery object</div>" };
+                    expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "Invalid return value. The custom loadTemplate function must return a jQuery instance" );
+                } );
+
+                it( 'when the custom loader returns undefined without throwing an error', function () {
+                    Backbone.DeclarativeViews.custom.loadTemplate = function () {};
+                    expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "Invalid return value. The custom loadTemplate function must return a jQuery instance" );
+                } );
+
             } );
 
-            it( 'When the custom loader returns undefined without throwing an error', function () {
-                Backbone.DeclarativeViews.custom.loadTemplate = function () {};
-                View = Backbone.View.extend( { template: "#returnsVoid" } );
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid return value. The custom loadTemplate function must return a jQuery instance" );
+            describe( 'An error raised deliberately in the custom loader, with one of the error types in Backbone.DeclarativeViews, bubbles up uncaught', function () {
+
+                // Generic errors in the loader are caught and suppressed, and Backbone just creates a standard el (see
+                // tests above). However, he error types of Backbone.DeclarativeViews are allowed to bubble up. That
+                // way, a custom loader can bypass the error handling and raise the alarm if it needs to.
+
+                it( 'when that error is of type Backbone.Backbone.DeclarativeViews.Error', function () {
+                    Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Backbone.DeclarativeViews.Error( "a message from the loader" ); };
+                    expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.Error, "a message from the loader" );
+                } );
+
+                it( 'when that error is of type Backbone.Backbone.DeclarativeViews.TemplateError', function () {
+                    Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Backbone.DeclarativeViews.TemplateError( "a message from the loader" ); };
+                    expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.TemplateError, "a message from the loader" );
+                } );
+
+                it( 'when that error is of type Backbone.Backbone.DeclarativeViews.CompilerError', function () {
+                    Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Backbone.DeclarativeViews.CompilerError( "a message from the loader" ); };
+                    expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CompilerError, "a message from the loader" );
+                } );
+
+                it( 'when that error is of type Backbone.Backbone.DeclarativeViews.CustomizationError', function () {
+                    Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Backbone.DeclarativeViews.CustomizationError( "a message from the loader" ); };
+                    expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "a message from the loader" );
+                } );
+
             } );
 
         } );

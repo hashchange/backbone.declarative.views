@@ -720,11 +720,11 @@
             } );
 
             it( 'throws an error when called without arguments', function () {
-                expect( function () { Backbone.DeclarativeViews.clearCachedTemplate(); } ).to.throw( Error );
+                expect( function () { Backbone.DeclarativeViews.clearCachedTemplate(); } ).to.throw( Backbone.DeclarativeViews.Error );
             } );
 
             it( 'throws an error when called with an empty string argument', function () {
-                expect( function () { Backbone.DeclarativeViews.clearCachedTemplate( "" ); } ).to.throw( Error );
+                expect( function () { Backbone.DeclarativeViews.clearCachedTemplate( "" ); } ).to.throw( Backbone.DeclarativeViews.Error );
             } );
 
         } );

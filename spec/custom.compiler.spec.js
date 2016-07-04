@@ -121,17 +121,17 @@
 
             it( 'if it is an object', function () {
                 Backbone.DeclarativeViews.custom.compiler = {};
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+                expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
             } );
 
             it( 'if it is a string', function () {
                 Backbone.DeclarativeViews.custom.compiler = "a string";
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+                expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
             } );
 
             it( 'if it is an array', function () {
                 Backbone.DeclarativeViews.custom.compiler = [];
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+                expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
             } );
 
         } );
@@ -140,7 +140,7 @@
 
             it( 'Backbone.Declarative.Views throws a (friendly) error', function () {
                 Backbone.DeclarativeViews.custom.compiler = function () { throw new Error( "compiler error message" ); };
-                expect( function () { new View( { template: "#template" } ); } ).to.throw( Error, "An error occurred while compiling the template" );
+                expect( function () { new View( { template: "#template" } ); } ).to.throw( Backbone.DeclarativeViews.CompilerError, "An error occurred while compiling the template" );
             } );
 
         } );
