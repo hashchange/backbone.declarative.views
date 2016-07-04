@@ -4,6 +4,11 @@
     var originalClearCache,                     // for Marionette only
         originalConstructor = Backbone.View,
         templateCache = {},
+
+        registeredDataAttributes = {
+            primitives: [],
+            json: []
+        },
         
         GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
@@ -64,9 +69,16 @@
         CompilerError: CompilerError,
         CustomizationError: CustomizationError,
 
+        plugins: {
+            registerDataAttribute: _registerDataAttribute,
+            getDataAttributes: _getDataAttributes,
+            updateJqueryDataCache: _updateJQueryDataCache
+        },
+
         defaults: {
             loadTemplate: loadTemplate
         },
+
         custom: {
             /** @type {Function|undefined} */
             loadTemplate: undefined,
@@ -74,6 +86,14 @@
             compiler: undefined
         }
     };
+
+    //
+    // Initialization
+    // --------------
+    _registerDataAttribute( "tag-name" );
+    _registerDataAttribute( "class-name" );
+    _registerDataAttribute( "id" );
+    _registerDataAttribute( "attributes", { isJSON: true } );
 
     //
     // Cache management
@@ -360,45 +380,90 @@
     }
 
     /**
+     * Adds a name to the list of data attributes which are used and managed by Backbone.Declarative.Views. The name
+     * must be passed without the "data-" prefix, but written as in the data attribute (ie "tag-name", not "tagName").
+     *
+     * When a data attribute is used to store stringified JSON objects, the flag `{ isJSON: true }` must be set in the
+     * options. Primitive data attributes (of type string, number, boolean) don't need a flag.
+     *
+     * @param {string}  name                    as in the data attribute (e.g. "tag-name", not "tagName"), and without "data-" prefix
+     * @param {object}  [options]
+     * @param {boolean} [options.isJSON=false]
+     * @private
+     */
+    function _registerDataAttribute ( name, options ) {
+        var type = options && options.isJSON ? "json" : "primitives",
+            names = registeredDataAttributes[type];
+
+        names.push( name );
+        registeredDataAttributes[type] = _.uniq( names );
+    }
+
+    /**
      * Returns the data attributes of an element.
      *
-     * Makes sure that the data attributes describing a Backbone el are read from the DOM, circumventing a potentially
-     * stale jQuery cache. The jQuery cache is updated in the process (but for these attributes only).
+     * Makes sure that the registered data attributes, which describe a Backbone el, are read from the DOM directly,
+     * circumventing a potentially stale jQuery cache. The jQuery cache is updated in the process (but for these
+     * attributes only).
      *
-     * That is necessary because jQuery keeps its own cache of data attributes. There is no API to clear or circumvent
-     * that cache. $.fn.removeData() and $.removeData() set the cached values to undefined, and undefined is returned on
-     * next access - not the actual values in the DOM.
+     * With registerDataAttribute(), plugins can register additional data attributes to have them handled the same way.
      *
-     * So here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
-     * picked up.
-     *
-     * NB The update is limited to the data attributes describing the el, which are "owned" by Backbone.Declarative.Views.
-     * Other HTML5 data-* attributes are not updated in the jQuery cache because it would interfere with the
-     * responsibilities of other code.
+     * See _updateJQueryDataCache() for more about updating the jQuery data cache.
      *
      * @param   {jQuery} $elem
      * @returns {Object}
      */
     function _getDataAttributes ( $elem ) {
+        _updateJQueryDataCache( $elem );
+        return $elem.data();
+    }
+
+    /**
+     * Reads registered data attributes of a given element from the DOM, and updates the jQuery data cache with these
+     * values.
+     *
+     * The function is needed because jQuery keeps its own cache of data attributes, but there is no API to clear or
+     * circumvent that cache. The jQuery functions $.fn.removeData() and $.removeData() don't do that job: despite their
+     * name, they don't actually remove the cached values but set them to undefined. So undefined is returned on next
+     * access - not the actual values in the DOM.
+     *
+     * Here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
+     * picked up.
+     *
+     * NB The cache update is limited to the data attributes which have been registered with _registerDataAttribute().
+     * By default, only attributes which are "owned" by Backbone.Declarative.Views are updated - ie, the ones describing
+     * the `el` of a view. Other HTML5 data-* attributes are not updated in the jQuery cache because it would interfere
+     * with the responsibilities of other code.
+     *
+     * @param   {jQuery} $elem
+     * @returns {Object}
+     */
+    function _updateJQueryDataCache ( $elem ) {
+        var dataHash = {};
 
         if ( $.hasData( $elem[0] ) ) {
 
-            // A jQuery data cache exists. Update it for the el properties.
-            $elem.data( {
-                tagName: $elem.attr( "data-tag-name" ),
-                className: $elem.attr( "data-class-name" ),
-                id: $elem.attr( "data-id" )
+            // A jQuery data cache exists. Update it for the el properties (and attribute names registered by a plugin).
+
+            // Primitive data types. Normally, this will read the "data-tag-name", "data-class-name" and "data-id"
+            // attributes.
+            _.each( registeredDataAttributes.primitives, function ( attributeName ) {
+                dataHash[attributeName] = $elem.attr( "data-" + attributeName );
             } );
 
-            try {
-                $elem.data( "attributes", $.parseJSON( $elem.attr( "data-attributes" ) ) );
-            } catch ( err ) {
-                $elem.removeData( "attributes" );
-            }
+            $elem.data( dataHash );
+
+            // Stringified JSON data. Normally, this just deals with "data-attributes".
+            _.each( registeredDataAttributes.json, function ( attributeName ) {
+                try {
+                    $elem.data( attributeName, $.parseJSON( $elem.attr( "data-" + attributeName ) ) );
+                } catch ( err ) {
+                    $elem.removeData( attributeName );
+                }
+            } );
 
         }
 
-        return $elem.data();
     }
 
     /**
