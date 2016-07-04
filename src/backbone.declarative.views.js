@@ -63,7 +63,7 @@
         TemplateError: TemplateError,
         CompilerError: CompilerError,
         CustomizationError: CustomizationError,
-        
+
         defaults: {
             loadTemplate: loadTemplate
         },
@@ -270,8 +270,11 @@
      */
     function _createTemplateCache( templateProp ) {
         var $template, data, html, outerTagParts,
+
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
             defaultLoader = Backbone.DeclarativeViews.defaults.loadTemplate,
+            modifiedDefaultLoader = defaultLoader !== loadTemplate,
+
             cacheId = templateProp;
 
         try {
@@ -283,7 +286,9 @@
             $template = "";
         }
 
-        if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new CustomizationError( "Invalid return value. The custom loadTemplate function must return a jQuery instance, but it hasn't" );
+        if ( ( customLoader || modifiedDefaultLoader ) && $template !== "" && ! ( $template instanceof Backbone.$ ) ) {
+            throw new CustomizationError( "Invalid return value. The " + ( customLoader ? "custom" : "default" ) + " loadTemplate function must return a jQuery instance, but it hasn't" );
+        }
 
         if ( $template.length ) {
 
