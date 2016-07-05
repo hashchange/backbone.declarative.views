@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v2.0.4
+// Backbone.Declarative.Views, v2.1.0
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -29,7 +29,17 @@
     
         var originalClearCache,                     // for Marionette only
             originalConstructor = Backbone.View,
-            templateCache = {};
+            templateCache = {},
+    
+            registeredDataAttributes = {
+                primitives: [],
+                json: []
+            },
+            
+            GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
+            TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
+            CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
+            CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" );
     
         //
         // Core functionality and API
@@ -79,6 +89,22 @@
             getCachedTemplate: getTemplateData,
             clearCachedTemplate: clearCachedTemplate,
             clearCache: clearCache,
+            
+            Error: GenericError,
+            TemplateError: TemplateError,
+            CompilerError: CompilerError,
+            CustomizationError: CustomizationError,
+    
+            plugins: {
+                registerDataAttribute: _registerDataAttribute,
+                getDataAttributes: _getDataAttributes,
+                updateJqueryDataCache: _updateJQueryDataCache
+            },
+    
+            defaults: {
+                loadTemplate: loadTemplate
+            },
+    
             custom: {
                 /** @type {Function|undefined} */
                 loadTemplate: undefined,
@@ -86,6 +112,14 @@
                 compiler: undefined
             }
         };
+    
+        //
+        // Initialization
+        // --------------
+        _registerDataAttribute( "tag-name" );
+        _registerDataAttribute( "class-name" );
+        _registerDataAttribute( "id" );
+        _registerDataAttribute( "attributes", { isJSON: true } );
     
         //
         // Cache management
@@ -217,7 +251,7 @@
                 _.each( templateProp, function ( singleProp ) { clearCachedTemplate( singleProp, fromMarionette ); } );
             } else {
     
-                if ( ! templateProp ) throw new Error( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
+                if ( ! templateProp ) throw new GenericError( "Missing argument: string identifying the template. The string should be a template selector or the raw HTML of a template, as provided to the template property of a view when the cache entry was created" );
     
                 // Dealing with a single templateProp argument.
                 //
@@ -255,6 +289,17 @@
         }
     
         /**
+         * Defines the default template loader. Accepts a selector string, or anything which can be processed by jQuery, and
+         * returns the template node (usually a <script> or <template> node) in a jQuery wrapper.
+         *
+         * @param   {string|jQuery|HTMLElement} templateProperty
+         * @returns {jQuery}
+         */
+        function loadTemplate ( templateProperty ) {
+            return Backbone.$( templateProperty );
+        }
+    
+        /**
          * Creates a cache entry for a given template property.
          *
          * Returns the cached entry if creating it has succeeded. In case of failure, it returns the hash { invalid: true }.
@@ -271,16 +316,25 @@
          */
         function _createTemplateCache( templateProp ) {
             var $template, data, html, outerTagParts,
+    
                 customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
+                defaultLoader = Backbone.DeclarativeViews.defaults.loadTemplate,
+                modifiedDefaultLoader = defaultLoader !== loadTemplate,
+    
                 cacheId = templateProp;
     
             try {
-                $template = customLoader ? customLoader( templateProp ) : Backbone.$( templateProp );
+                $template = customLoader ? customLoader( templateProp ) : defaultLoader( templateProp );
             } catch ( err ) {
+                // Rethrow and exit if the alarm has been raised deliberately, using an error type of Backbone.DeclarativeViews.
+                if( _isDeclarativeViewsErrorType( err ) ) throw err;
+                // Otherwise, continue without having fetched a template.
                 $template = "";
             }
     
-            if ( customLoader && $template !== "" && ! ( $template instanceof Backbone.$ ) ) throw new Error( "Invalid return value. The custom loadTemplate function must return a jQuery instance, but it hasn't" );
+            if ( ( customLoader || modifiedDefaultLoader ) && $template !== "" && ! ( $template instanceof Backbone.$ ) ) {
+                throw new CustomizationError( "Invalid return value. The " + ( customLoader ? "custom" : "default" ) + " loadTemplate function must return a jQuery instance, but it hasn't" );
+            }
     
             if ( $template.length ) {
     
@@ -329,12 +383,12 @@
     
             if ( customCompiler ) {
     
-                if ( customCompiler  && !_.isFunction( customCompiler ) ) throw new Error( "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+                if ( customCompiler  && !_.isFunction( customCompiler ) ) throw new CustomizationError( "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
     
                 try {
                     compiled = customCompiler( html, $template );
                 } catch ( err ) {
-                    throw new Error( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
+                    throw new CompilerError( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
                 }
     
             }
@@ -352,45 +406,90 @@
         }
     
         /**
+         * Adds a name to the list of data attributes which are used and managed by Backbone.Declarative.Views. The name
+         * must be passed without the "data-" prefix, but written as in the data attribute (ie "tag-name", not "tagName").
+         *
+         * When a data attribute is used to store stringified JSON objects, the flag `{ isJSON: true }` must be set in the
+         * options. Primitive data attributes (of type string, number, boolean) don't need a flag.
+         *
+         * @param {string}  name                    as in the data attribute (e.g. "tag-name", not "tagName"), and without "data-" prefix
+         * @param {object}  [options]
+         * @param {boolean} [options.isJSON=false]
+         * @private
+         */
+        function _registerDataAttribute ( name, options ) {
+            var type = options && options.isJSON ? "json" : "primitives",
+                names = registeredDataAttributes[type];
+    
+            names.push( name );
+            registeredDataAttributes[type] = _.uniq( names );
+        }
+    
+        /**
          * Returns the data attributes of an element.
          *
-         * Makes sure that the data attributes describing a Backbone el are read from the DOM, circumventing a potentially
-         * stale jQuery cache. The jQuery cache is updated in the process (but for these attributes only).
+         * Makes sure that the registered data attributes, which describe a Backbone el, are read from the DOM directly,
+         * circumventing a potentially stale jQuery cache. The jQuery cache is updated in the process (but for these
+         * attributes only).
          *
-         * That is necessary because jQuery keeps its own cache of data attributes. There is no API to clear or circumvent
-         * that cache. $.fn.removeData() and $.removeData() set the cached values to undefined, and undefined is returned on
-         * next access - not the actual values in the DOM.
+         * With registerDataAttribute(), plugins can register additional data attributes to have them handled the same way.
          *
-         * So here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
-         * picked up.
-         *
-         * NB The update is limited to the data attributes describing the el, which are "owned" by Backbone.Declarative.Views.
-         * Other HTML5 data-* attributes are not updated in the jQuery cache because it would interfere with the
-         * responsibilities of other code.
+         * See _updateJQueryDataCache() for more about updating the jQuery data cache.
          *
          * @param   {jQuery} $elem
          * @returns {Object}
          */
         function _getDataAttributes ( $elem ) {
+            _updateJQueryDataCache( $elem );
+            return $elem.data();
+        }
+    
+        /**
+         * Reads registered data attributes of a given element from the DOM, and updates the jQuery data cache with these
+         * values.
+         *
+         * The function is needed because jQuery keeps its own cache of data attributes, but there is no API to clear or
+         * circumvent that cache. The jQuery functions $.fn.removeData() and $.removeData() don't do that job: despite their
+         * name, they don't actually remove the cached values but set them to undefined. So undefined is returned on next
+         * access - not the actual values in the DOM.
+         *
+         * Here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
+         * picked up.
+         *
+         * NB The cache update is limited to the data attributes which have been registered with _registerDataAttribute().
+         * By default, only attributes which are "owned" by Backbone.Declarative.Views are updated - ie, the ones describing
+         * the `el` of a view. Other HTML5 data-* attributes are not updated in the jQuery cache because it would interfere
+         * with the responsibilities of other code.
+         *
+         * @param   {jQuery} $elem
+         * @returns {Object}
+         */
+        function _updateJQueryDataCache ( $elem ) {
+            var dataHash = {};
     
             if ( $.hasData( $elem[0] ) ) {
     
-                // A jQuery data cache exists. Update it for the el properties.
-                $elem.data( {
-                    tagName: $elem.attr( "data-tag-name" ),
-                    className: $elem.attr( "data-class-name" ),
-                    id: $elem.attr( "data-id" )
+                // A jQuery data cache exists. Update it for the el properties (and attribute names registered by a plugin).
+    
+                // Primitive data types. Normally, this will read the "data-tag-name", "data-class-name" and "data-id"
+                // attributes.
+                _.each( registeredDataAttributes.primitives, function ( attributeName ) {
+                    dataHash[attributeName] = $elem.attr( "data-" + attributeName );
                 } );
     
-                try {
-                    $elem.data( "attributes", $.parseJSON( $elem.attr( "data-attributes" ) ) );
-                } catch ( err ) {
-                    $elem.removeData( "attributes" );
-                }
+                $elem.data( dataHash );
+    
+                // Stringified JSON data. Normally, this just deals with "data-attributes".
+                _.each( registeredDataAttributes.json, function ( attributeName ) {
+                    try {
+                        $elem.data( attributeName, $.parseJSON( $elem.attr( "data-" + attributeName ) ) );
+                    } catch ( err ) {
+                        $elem.removeData( attributeName );
+                    }
+                } );
     
             }
     
-            return $elem.data();
         }
     
         /**
@@ -424,6 +523,21 @@
                 .prop( "outerHTML" )
                 .replace( html, "\n" )
                 .split( "\n" );
+        }
+    
+        /**
+         * Checks if an error belongs to the error types of Backbone.DeclarativeViews.
+         *
+         * ATTN Update this check as new error types are added to Backbone.DeclarativeViews.
+         *
+         * @param   {Object}  error
+         * @returns {boolean}
+         */
+        function _isDeclarativeViewsErrorType ( error ) {
+            return error instanceof GenericError ||
+                   error instanceof TemplateError ||
+                   error instanceof CompilerError ||
+                   error instanceof CustomizationError;
         }
     
         //
@@ -468,6 +582,37 @@
             //
             // In a nutshell, loader integration has proven to be more trouble than it is worth.
     
+        }
+    
+        //
+        // Generic helpers
+        // ---------------
+    
+        /**
+         * Creates and returns a custom error type.
+         *
+         * See gist at https://gist.github.com/hashchange/4c1ce239570c77e698c1d2df09d0e540
+         *
+         * @param   {string} name  of the error type
+         * @returns {Error}
+         */
+        function createCustomErrorType ( name ) {
+    
+            function CustomError ( message ) {
+                this.message = message;
+    
+                if ( Error.captureStackTrace ) {
+                    Error.captureStackTrace( this, this.constructor );
+                } else {
+                    this.stack = ( new Error() ).stack;
+                }
+            }
+    
+            CustomError.prototype = new Error();
+            CustomError.prototype.name = name;
+            CustomError.prototype.constructor = CustomError;
+    
+            return CustomError;
         }
     
     
