@@ -13,8 +13,7 @@ requirejs.config( {
 
         'local.base': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/base',
         'local.views-backbone': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-backbone',
-        'local.views-marionette': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-marionette',
-        'local.inline-el-plugin': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/inline-el-plugin'
+        'local.views-marionette': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-marionette'
     },
 
     shim: {

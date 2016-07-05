@@ -20,8 +20,7 @@ requirejs.config( {
 
         'local.base': '../demo/amd/base',
         'local.views-backbone': '../demo/amd/views-backbone',
-        'local.views-marionette': '../demo/amd/views-marionette',
-        'local.inline-el-plugin': '../demo/amd/inline-el-plugin'
+        'local.views-marionette': '../demo/amd/views-marionette'
     },
 
     shim: {
