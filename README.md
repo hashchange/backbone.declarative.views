@@ -190,22 +190,34 @@ The snippets assume that you compile your templates with the `_.template()` func
 Backbone.DeclarativeViews.custom.compiler = function ( templateHtml ) {
   return _.template( templateHtml );
 };
+
+// As you can see, the function signatures of `custom.compiler` and `_.template`  
+// are identical here, so we could simplify the assignment to
+Backbone.DeclarativeViews.custom.compiler = _.template;
 ```
 
-[Defining a compiler][template-compiler] like that is optional, but gives you a speed boost for free.
+[Defining a compiler][template-compiler] like that is optional, but gives you a significant speed boost for free. It is best to make a habit of always defining the template compiler.
 
 ```javascript
+// Access the cache in a view. 
 
-// Tap into the cache in a view class. 
-//
-// Safe to use even if you don't define a template for some of your views. 
-// Also works if you leave out the snippet above, and don't set a compiler.
+// The following lines are safe to use even if you don't define a template for
+// some of your views. They also work if you leave out the snippet above, and 
+// don't set a compiler.
 var BaseView = Backbone.View.extend( {
   initialize: function () {
     var cachedTemplate = this.declarativeViews.getCachedTemplate();
     if ( cachedTemplate ) {
       this.template = cachedTemplate.compiled || _.template( cachedTemplate.html );
     }
+  }
+} );
+
+// If you always define the template compiler, and your view is guaranteed to 
+// have a template, get rid of the cruft and just use
+var BaseView = Backbone.View.extend( {
+  initialize: function () {
+    this.template = this.declarativeViews.getCachedTemplate().compiled;
   }
 } );
 ```
@@ -344,13 +356,29 @@ Backbone.DeclarativeViews.custom.loadTemplate = function ( templateProperty ) {
 };
 ```
 
-The custom loader is called with the template property as the only argument. That argument is always a string. The custom loader must return a jQuery object (or more precisely an instance of `Backbone.$`, which usually means jQuery).
+##### Arguments and expected return value
+
+The custom loader is called with the template property of the view as the only argument. That argument is always a string. The custom loader must return a jQuery object (or more precisely an instance of `Backbone.$`, which usually means jQuery).
 
 The returned jQuery object is considered to be the template node. The template HTML should best be _inside_ that node (rather than _be_ the node), though it is essentially up to you how you set that up. Inner and outer HTML of the node can be retrieved from the `html` property and `outerHtml()` method [of the cache entry][cache-entry].
 
-But sometimes, things just go wrong. If your loader can't process the template argument, or does not find the template, it is allowed to throw an error. The error is caught and handled silently. Alternatively, the loader can return a jQuery object which does not contain any nodes (length 0). Both cases are treated as a permanent [cache miss][cache-misses].
+##### Errors
+
+Sometimes, things just go wrong. If your loader can't process the template argument, or does not find the template, it is allowed to throw an error. The error is caught and handled silently (with one exception, see below). Alternatively, the loader can return a jQuery object which does not contain any nodes (length 0). Both cases are treated as a permanent [cache miss][cache-misses].
+
+If you need to call attention to a specific type of problem, your loader can raise the alarm. An error is allowed to bubble up, rather than being handled silently, if the loader throws one of the error types belonging to Backbone.Declarative.Views. These are `Backbone.DeclarativeViews.Error`, `Backbone.DeclarativeViews.TemplateError`, `Backbone.DeclarativeViews.CompilerError` and `Backbone.DeclarativeViews.CustomizationError`.
+
+##### Other considerations
 
 Please be aware that your custom loader will only be called if the template of the view [is defined by a string][cache-miss-no-string]. If it is not, Backbone.Declarative.Views bails out well before attempting to load anything. Non-string template properties are [none of its business][cache-miss-no-string]. 
+
+Your custom loader has access to the default loader and can invoke it like this: 
+
+```javascript
+$template = Backbone.DeclarativeViews.defaults.loadTemplate( templateProperty );
+```
+
+In most cases, though, that won't be necessary and is hardly worth the bother: the default loader just returns `$( templateProperty )` anyway. But things are different if a plugin overwrites the default loader and replaces it with more complex code. Your own custom loader might need to access it then, and it can.  
 
 ### Clearing the cache
 
@@ -498,6 +526,12 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 [![Donate with Paypal][donations-paypal-button]][donations-paypal-link]
 
 ## Release Notes
+
+### v2.1.0
+
+- Exposed the default template loader in `Backbone.DeclarativeViews.defaults.loadTemplate`
+- Exposed `registerDataAttribute`, `getDataAttributes` and `updateJqueryDataCache` methods for use by plugins (accessible from `Backbone.DeclarativeViews.plugins`)
+- Added component-specific error types
 
 ### v2.0.4
 
