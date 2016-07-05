@@ -10,9 +10,9 @@ require( [
 
 ], function ( Backbone, base, backboneViews, marionetteViews ) {
 
-    // To make the inline `el` magic work with Marionette, the original template must be replaced. Backbone-only views
-    // don't need this. Try it by commenting it out.
-    Backbone.DeclarativeViews.custom.replaceOriginalTemplates = true;
+    // To make the inline `el` magic work with Marionette, the original template must be updated (modified).
+    // Backbone-only views don't need this. Try it by commenting it out.
+    Backbone.InlineTemplate.updateOriginalTemplates = true;
 
     var count = 10,
 
