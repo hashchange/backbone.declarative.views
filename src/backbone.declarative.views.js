@@ -13,7 +13,9 @@
         GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
         CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
-        CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" );
+        CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" ),
+
+        $ = Backbone.$;
 
     //
     // Core functionality and API
@@ -270,7 +272,7 @@
      * @returns {jQuery}
      */
     function loadTemplate ( templateProperty ) {
-        return Backbone.$( templateProperty );
+        return $( templateProperty );
     }
 
     /**
