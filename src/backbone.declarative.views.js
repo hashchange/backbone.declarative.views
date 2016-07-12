@@ -4,6 +4,7 @@
     var originalClearCache,                     // for Marionette only
         originalConstructor = Backbone.View,
         templateCache = {},
+        instanceCacheAliases = [],
 
         registeredDataAttributes = {
             primitives: [],
@@ -56,6 +57,10 @@
                 clearCachedTemplate: _.partial( clearViewTemplateCache, this )
             };
 
+            _.each( instanceCacheAliases, function ( alias ) {
+                this[alias] = this.declarativeViews;
+            }, this );
+
             originalConstructor.apply( this, arguments );
         }
 
@@ -74,7 +79,8 @@
         plugins: {
             registerDataAttribute: _registerDataAttribute,
             getDataAttributes: _getDataAttributes,
-            updateJqueryDataCache: _updateJQueryDataCache
+            updateJqueryDataCache: _updateJQueryDataCache,
+            registerCacheAlias: _registerCacheAlias
         },
 
         defaults: {
@@ -466,6 +472,32 @@
 
         }
 
+    }
+
+    /**
+     * Registers an alternative way to access the cache and set up a custom compiler and loader. Intended for use by
+     * plugins.
+     *
+     * A cache alias just adds syntactic sugar for users wanting to manage and access the cache from a plugin namespace.
+     * The registration creates references to `getCachedTemplate`, `clearCachedTemplate`, `clearCache`, and the `custom` 
+     * object in the alternative namespace.
+     *
+     * You can also register the name of an alias to use on view instances (optional). A property of that name will be
+     * created on each view. It references the declarativeViews property of the view.
+     *
+     * @param {Object} namespaceObject              e.g. Backbone.InlineTemplate
+     * @param {string} [instanceCachePropertyName]  the name of the cache property on a view instance, e.g. "inlineTemplate"
+     */
+    function _registerCacheAlias( namespaceObject, instanceCachePropertyName ) {
+        namespaceObject.getCachedTemplate = Backbone.DeclarativeViews.getCachedTemplate;
+        namespaceObject.clearCachedTemplate = Backbone.DeclarativeViews.clearCachedTemplate;
+        namespaceObject.clearCache = Backbone.DeclarativeViews.clearCache;
+        namespaceObject.custom = Backbone.DeclarativeViews.custom;
+        
+        if ( instanceCachePropertyName ) {
+            instanceCacheAliases.push( instanceCachePropertyName );
+            instanceCacheAliases = _.unique( instanceCacheAliases );
+        }
     }
 
     /**
