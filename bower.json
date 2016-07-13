@@ -39,7 +39,9 @@
     "package.json"
   ],
   "devDependencies": {
-    "marionette": "^1.1.0 <1.9.0 || ^2.0.0"
+    "marionette": "^1.1.0 <1.9.0 || ^2.0.0",
+    "jquery-legacy-v1": "jquery#^1",
+    "jquery-legacy-v2": "jquery#^2"
   },
   "dependencies": {
     "backbone": "^1.0.0 <1.4.0",

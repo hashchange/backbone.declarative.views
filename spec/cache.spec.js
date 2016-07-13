@@ -456,8 +456,13 @@
                 view.declarativeViews.clearCachedTemplate();
 
                 retrieved = view.declarativeViews.getCachedTemplate();
-                expect( retrieved ).to.have.ownProperty( "tagName", undefined );
-                expect( retrieved ).to.have.ownProperty( "className", undefined );
+
+                expect( retrieved ).to.have.ownProperty( "tagName" );
+                expect( retrieved.tagName ).to.be.undefined;
+
+                expect( retrieved ).to.have.ownProperty( "className" );
+                expect( retrieved.className ).to.be.undefined;
+
                 expect( retrieved ).to.returnCacheValueFor( resultingDataAttributes, $templateNode );
             } );
 

@@ -438,6 +438,10 @@
      * Here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
      * picked up.
      *
+     * The implementation circumvents the numerous bugs of jQuery.fn.data(), in particular when removing data. The
+     * behaviour and bugs of a .data() call vary by jQuery version. For an overview of that mess, see
+     * http://jsbin.com/venuqo/4/edit?html,js,console
+     *
      * NB The cache update is limited to the data attributes which have been registered with _registerDataAttribute().
      * By default, only attributes which are "owned" by Backbone.Declarative.Views are updated - ie, the ones describing
      * the `el` of a view. Other HTML5 data-* attributes are not updated in the jQuery cache because it would interfere
@@ -447,7 +451,8 @@
      * @returns {Object}
      */
     function _updateJQueryDataCache ( $elem ) {
-        var dataHash = {};
+        var add = {},
+            remove = [];
 
         if ( $.hasData( $elem[0] ) ) {
 
@@ -456,20 +461,34 @@
             // Primitive data types. Normally, this will read the "data-tag-name", "data-class-name" and "data-id"
             // attributes.
             _.each( registeredDataAttributes.primitives, function ( attributeName ) {
-                dataHash[attributeName] = $elem.attr( "data-" + attributeName );
-            } );
+                var attributeValue = $elem.attr( "data-" + attributeName );
 
-            $elem.data( dataHash );
-
-            // Stringified JSON data. Normally, this just deals with "data-attributes".
-            _.each( registeredDataAttributes.json, function ( attributeName ) {
-                try {
-                    $elem.data( attributeName, $.parseJSON( $elem.attr( "data-" + attributeName ) ) );
-                } catch ( err ) {
-                    $elem.removeData( attributeName );
+                if ( attributeValue === undefined ) {
+                    remove.push( attributeName );
+                } else {
+                    add[toCamelCase( attributeName )] = attributeValue;
                 }
             } );
 
+            // Stringified JSON data. Normally, this just deals with "data-attributes".
+            _.each( registeredDataAttributes.json, function ( attributeName ) {
+                var attributeValue = $elem.attr( "data-" + attributeName );
+
+                if ( attributeValue === undefined ) {
+                    remove.push( attributeName );
+                } else {
+
+                    try {
+                        add[toCamelCase( attributeName )] = $.parseJSON( attributeValue );
+                    } catch ( err ) {
+                        remove.push( attributeName );
+                    }
+
+                }
+            } );
+
+            if ( remove.length ) $elem.removeData( remove );
+            if ( _.size( add ) ) $elem.data( add );
         }
 
     }
@@ -595,6 +614,20 @@
     //
     // Generic helpers
     // ---------------
+
+    /**
+     * Turns a dashed string into a camelCased one.
+     *
+     * Simple implementation, but good enough for data attributes.
+     *
+     * @param   {string} dashed
+     * @returns {string}
+     */
+    function toCamelCase ( dashed ) {
+        return dashed.replace( /([^-])-([a-z])/g, function ( $0, $1, $2 ) {
+            return $1 + $2.toUpperCase();
+        } );
+    }
 
     /**
      * Creates and returns a custom error type.

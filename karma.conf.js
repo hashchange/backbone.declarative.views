@@ -25,7 +25,16 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       // Component dependencies
+
+      // Using the latest jQuery by default. Switch to jQuery 1.x or 2.x as needed.
+      //  
+      // NB Tests run through the interactive web interface use jQuery 1.x. Use `grunt interactive` or `grunt webtest` 
+      // for them.
+
       'bower_components/jquery/dist/jquery.js',
+      // 'bower_components/jquery-legacy-v1/dist/jquery.js',
+      // 'bower_components/jquery-legacy-v2/dist/jquery.js',
+        
       'bower_components/underscore/underscore.js',
       'bower_components/backbone/backbone.js',
       'bower_components/marionette/lib/backbone.marionette.js',
