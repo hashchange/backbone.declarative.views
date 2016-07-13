@@ -43,6 +43,7 @@ module.exports = function(config) {
       'src/backbone.declarative.views.js',
 
       // Test helpers
+      'node_modules/chai-subset/lib/chai-subset.js',
       'spec/chai-helpers/**/*.js',
       'spec/helpers/**/*.js',
 

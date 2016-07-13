@@ -39,3 +39,17 @@ function dataAttributesToProperties ( dataAttributesHash ) {
 
     return transformed;
 }
+
+/**
+ * Combines various hashes with a shallow _.extend(). Doesn't modify the input hashes.
+ *
+ * Syntactic sugar only, as a simple way of saying _.extend( {}, hashA, hashB, hashN );
+ *
+ * @param   {...Object} hashes
+ * @returns {Object}
+ */
+function combine ( hashA, hashB, hashN ) {
+    var hashes = _.toArray( arguments );
+
+    return _.extend.apply( undefined, [ {} ].concat( hashes ) );
+}
