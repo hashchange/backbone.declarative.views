@@ -427,8 +427,12 @@
     }
 
     /**
-     * Reads registered data attributes of a given element from the DOM, and updates the jQuery data cache with these
-     * values.
+     * Reads registered data attributes of a given element from the DOM, and updates an existing jQuery data cache with
+     * these values.
+     *
+     * If no jQuery data cache exists, it is NOT created by the call. (This function is meant to be used as an efficient,
+     * internal tool.) If you need to make sure the jQuery data cache is current and in sync with the DOM, and also
+     * create it if it doesn't exist, just call _getDataAttributes() instead.
      *
      * The function is needed because jQuery keeps its own cache of data attributes, but there is no API to clear or
      * circumvent that cache. The jQuery functions $.fn.removeData() and $.removeData() don't do that job: despite their
