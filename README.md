@@ -16,7 +16,7 @@ If you are a happy user of this project already, you can support its development
 
 ### With plain Backbone
 
-[Backbone][] is the only dependency. Include backbone.declarative.views.js after [Backbone][].
+Backbone.Declarative.Views depends on the Backbone stack: [Backbone][], [Underscore][], and [jQuery][] or one of its replacements. Include backbone.declarative.views.js after that lot.
 
 If you use other components which extend Backbone.View, load these components after Backbone.Declarative.Views.
 
@@ -42,7 +42,7 @@ requirejs.config( {
 
 The stable version of Backbone.Declarative.Views is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install backbone.declarative.views`. With npm, it is `npm install backbone.declarative.views`.
 
-## Why use it
+## Why use it?
 
 Markup, styling and behaviour should be kept separate – we all know that. Yet with Backbone views, it is common to mix them up.
 
@@ -527,6 +527,11 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v2.2.0
+
+- Added `Backbone.DeclarativeViews.plugins.registerCacheAlias` method for use by plugins
+- Fixed jQuery data cache updates for jQuery 1.x, 2.x
+
 ### v2.1.0
 
 - Exposed the default template loader in `Backbone.DeclarativeViews.defaults.loadTemplate`
@@ -588,6 +593,8 @@ MIT.
 
 Copyright (c) 2014-2016 Michael Heim.
 
+[jQuery]: http://jquery.com/ "jQuery"
+[Underscore]: http://underscorejs.org/ "Underscore.js"
 [Backbone]: http://backbonejs.org/ "Backbone.js"
 [Marionette]: https://github.com/marionettejs/backbone.marionette#readme "Marionette: a composite application library for Backbone.js"
 [Node.js]: http://nodejs.org/ "Node.js"
