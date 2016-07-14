@@ -41,6 +41,50 @@ function dataAttributesToProperties ( dataAttributesHash ) {
 }
 
 /**
+ * Returns a transformed hash in which all camel-cased property names have been replaced by dashed property names. The
+ * input hash remains untouched.
+ *
+ * Property values are not modified.
+ *
+ * Simple implementation, but good enough for the attribute names we deal with here.
+ *
+ * Example: { fooBar: "whatEver" } => { "foo-bar": "whatEver" }
+ *
+ * @param   {Object} hash
+ * @returns {Object}
+ */
+function toDashedProperties ( hash ) {
+    var transformed = {};
+
+    _.each( hash, function ( value, key ) {
+        var transformedKey = key.replace( /([a-z])([A-Z])/g, function ( $0, $1, $2 ) {
+            return $1 + "-" + $2.toLowerCase();
+        } );
+
+        transformed[transformedKey] = value;
+    } );
+
+    return transformed;
+}
+
+/**
+ * Returns an array of dashed key names, which are the alternative names for all camel-cased key names in a hash.
+ *
+ * Simple key names (not camel-cased) are ignored and don't show up in the array.
+ *
+ * E.g., dashedKeyAlternatives( { foo: "whatever", barBaz: "whatever" } ) returns [ "bar-baz" ].
+ *
+ * @param   {Object} hash
+ * @returns {string[]}
+ */
+function dashedKeyAlternatives ( hash ) {
+    var keys = _.keys( toDashedProperties( hash ) );
+    return _.filter( keys, function ( key ) {
+            return key.search(/[^-]-[a-z]/) !== -1;
+        } );
+}
+
+/**
  * Combines various hashes with a shallow _.extend(). Doesn't modify the input hashes.
  *
  * Syntactic sugar only, as a simple way of saying _.extend( {}, hashA, hashB, hashN );

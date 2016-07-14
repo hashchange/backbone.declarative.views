@@ -107,7 +107,8 @@
             var defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs,
                 defaultDataAsProps, registeredCustomDataAsProps, otherCustomDataAsProps,
                 modifiedDefaultDataAttrs, modifiedRegisteredCustomDataAttrs, modifiedOtherCustomDataAttrs,
-                modifiedDefaultDataAsProps, modifiedRegisteredCustomDataAsProps, modifiedOtherCustomDataAsProps;
+                modifiedDefaultDataAsProps, modifiedRegisteredCustomDataAsProps, modifiedOtherCustomDataAsProps,
+                allDataAttrs, allModifiedDataAttrs, allDataAsProps, allModifiedDataAsProps;
 
             before( function () {
                 // NB registerDataAttribute can't process camelCased names. See the JS doc of the function.
@@ -184,6 +185,12 @@
                     unregistered: "modified other"
                 };
 
+                allDataAttrs = combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs );
+                allModifiedDataAttrs = combine( modifiedDefaultDataAttrs, modifiedRegisteredCustomDataAttrs, modifiedOtherCustomDataAttrs );
+
+                allDataAsProps = combine( defaultDataAsProps, registeredCustomDataAsProps, otherCustomDataAsProps );
+                allModifiedDataAsProps = combine( modifiedDefaultDataAsProps, modifiedRegisteredCustomDataAsProps, modifiedOtherCustomDataAsProps );
+
             } );
 
             describe( 'Attributes are retrieved with getDataAttributes()', function () {
@@ -191,7 +198,7 @@
                 describe( 'Return values', function () {
 
                     it( 'the default set of `el`-related Backbone attributes is returned, if they exist', function () {
-                        $templateNode.attr( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                        $templateNode.attr( allDataAttrs );
 
                         var retrieved = Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
                         expect( retrieved ).to.containSubset( defaultDataAsProps );
@@ -205,7 +212,7 @@
                     } );
 
                     it( 'custom attributes which have been registered are returned, if they exist', function () {
-                        $templateNode.attr( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                        $templateNode.attr( allDataAttrs );
 
                         var retrieved = Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
                         expect( retrieved ).to.containSubset( registeredCustomDataAsProps );
@@ -219,10 +226,17 @@
                     } );
 
                     it( 'non-registered, arbitrary data attributes are also returned, if they exist', function () {
-                        $templateNode.attr( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                        $templateNode.attr( allDataAttrs );
 
                         var retrieved = Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
                         expect( retrieved ).to.containSubset( otherCustomDataAsProps );
+                    } );
+
+                    it( 'dashed duplicates of any of the attributes do not accidentally appear in the return value', function () {
+                        $templateNode.attr( allDataAttrs );
+
+                        var retrieved = Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
+                        expect( retrieved ).to.not.contain.any.keys( dashedKeyAlternatives( allDataAsProps ) );
                     } );
 
                 } );
@@ -232,7 +246,7 @@
                     var jQueryData;
 
                     beforeEach( function () {
-                        $templateNode.attr( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                        $templateNode.attr( allDataAttrs );
                         Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
                         jQueryData = $templateNode.data();
                     } );
@@ -249,6 +263,10 @@
                         expect( jQueryData ).to.containSubset( otherCustomDataAsProps );
                     } );
 
+                    it( 'dashed duplicates of any of the attributes have not been created accidentally', function () {
+                        expect( jQueryData ).to.not.contain.any.keys( dashedKeyAlternatives( allDataAsProps ) );
+                    } );
+
                 } );
 
                 describe( 'Subsequent access', function () {
@@ -256,7 +274,7 @@
                     var jQueryData, retrieved;
 
                     beforeEach( function () {
-                        $templateNode.attr( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                        $templateNode.attr( allDataAttrs );
 
                         // First access (return values not recorded)
                         Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
@@ -266,7 +284,7 @@
                     describe( 'After second retrieval, when the attributes have been altered in the DOM,', function () {
 
                         beforeEach( function () {
-                            $templateNode.attr( combine( modifiedDefaultDataAttrs, modifiedRegisteredCustomDataAttrs, modifiedOtherCustomDataAttrs ) );
+                            $templateNode.attr( allModifiedDataAttrs );
 
                             // Second access
                             retrieved = Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
@@ -290,6 +308,10 @@
                                 expect( retrieved ).to.containSubset( otherCustomDataAsProps );
                             } );
 
+                            it( 'does not contain dashed duplicates of any of the attributes', function () {
+                                expect( retrieved ).to.not.contain.any.keys( dashedKeyAlternatives( allModifiedDataAsProps ) );
+                            } );
+
                         } );
 
                         describe( 'the jQuery data object', function () {
@@ -307,6 +329,10 @@
                                 expect( jQueryData ).to.containSubset( otherCustomDataAsProps );
                             } );
 
+                            it( 'does not contain dashed duplicates of any of the attributes', function () {
+                                expect( jQueryData ).to.not.contain.any.keys( dashedKeyAlternatives( allModifiedDataAsProps ) );
+                            } );
+
                         } );
 
                     } );
@@ -314,7 +340,7 @@
                     describe( 'After second retrieval, when the attributes have been removed from the DOM,', function () {
 
                         beforeEach( function () {
-                            var keys = _.keys( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                            var keys = _.keys( allDataAttrs );
 
                             _.each( keys, function ( key ) {
                                 $templateNode.removeAttr( key );
@@ -342,9 +368,13 @@
                                 expect( retrieved ).to.containSubset( otherCustomDataAsProps );
                             } );
 
+                            it( 'does not contain dashed duplicates of any of the attributes', function () {
+                                expect( retrieved ).to.not.contain.any.keys( dashedKeyAlternatives( allDataAsProps ) );
+                            } );
+
                         } );
 
-                        describe( 'jQuery data', function () {
+                        describe( 'the jQuery data object', function () {
 
                             it( 'does no longer contain default attributes, which have been removed', function () {
                                 expect( jQueryData ).to.not.contain.any.keys( defaultDataAsProps );
@@ -357,6 +387,10 @@
                             it( 'still contains non-registered, arbitrary data attributes, even though they have been removed from the DOM', function () {
                                 // Backbone.Declarative.Views must not interfere with data it does not own.
                                 expect( jQueryData ).to.containSubset( otherCustomDataAsProps );
+                            } );
+
+                            it( 'does not contain dashed duplicates of any of the attributes', function () {
+                                expect( jQueryData ).to.not.contain.any.keys( dashedKeyAlternatives( allDataAsProps ) );
                             } );
 
                         } );
@@ -375,7 +409,7 @@
                 var jQueryData;
 
                 beforeEach( function () {
-                    $templateNode.attr( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                    $templateNode.attr( allDataAttrs );
 
                     // First access (return values not recorded)
                     Backbone.DeclarativeViews.plugins.getDataAttributes( $templateNode );
@@ -385,7 +419,7 @@
                 describe( 'When the attributes have been altered in the DOM, the jQuery data object', function () {
 
                     beforeEach( function () {
-                        $templateNode.attr( combine( modifiedDefaultDataAttrs, modifiedRegisteredCustomDataAttrs, modifiedOtherCustomDataAttrs ) );
+                        $templateNode.attr( allModifiedDataAttrs );
 
                         // Second access
                         Backbone.DeclarativeViews.plugins.updateJqueryDataCache( $templateNode );
@@ -405,12 +439,16 @@
                         expect( jQueryData ).to.containSubset( otherCustomDataAsProps );
                     } );
 
+                    it( 'does not contain dashed duplicates of any of the attributes', function () {
+                        expect( jQueryData ).to.not.contain.any.keys( dashedKeyAlternatives( allModifiedDataAsProps ) );
+                    } );
+
                 } );
 
                 describe( 'When the attributes have been removed from the DOM, the jQuery data object', function () {
 
                     beforeEach( function () {
-                        var keys = _.keys( combine( defaultDataAttrs, registeredCustomDataAttrs, otherCustomDataAttrs ) );
+                        var keys = _.keys( allDataAttrs );
 
                         _.each( keys, function ( key ) {
                             $templateNode.removeAttr( key );
@@ -432,6 +470,10 @@
                     it( 'still contains non-registered, arbitrary data attributes, even though they have been removed from the DOM', function () {
                         // Backbone.Declarative.Views must not interfere with data it does not own.
                         expect( jQueryData ).to.containSubset( otherCustomDataAsProps );
+                    } );
+
+                    it( 'does not contain dashed duplicates of any of the attributes', function () {
+                        expect( jQueryData ).to.not.contain.any.keys( dashedKeyAlternatives( allDataAsProps ) );
                     } );
 
                 } );
