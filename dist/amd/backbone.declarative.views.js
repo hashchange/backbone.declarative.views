@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v2.1.0
+// Backbone.Declarative.Views, v2.2.0
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -30,6 +30,7 @@
         var originalClearCache,                     // for Marionette only
             originalConstructor = Backbone.View,
             templateCache = {},
+            instanceCacheAliases = [],
     
             registeredDataAttributes = {
                 primitives: [],
@@ -39,7 +40,9 @@
             GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
             TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
             CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
-            CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" );
+            CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" ),
+    
+            $ = Backbone.$;
     
         //
         // Core functionality and API
@@ -80,6 +83,10 @@
                     clearCachedTemplate: _.partial( clearViewTemplateCache, this )
                 };
     
+                _.each( instanceCacheAliases, function ( alias ) {
+                    this[alias] = this.declarativeViews;
+                }, this );
+    
                 originalConstructor.apply( this, arguments );
             }
     
@@ -98,7 +105,8 @@
             plugins: {
                 registerDataAttribute: _registerDataAttribute,
                 getDataAttributes: _getDataAttributes,
-                updateJqueryDataCache: _updateJQueryDataCache
+                updateJqueryDataCache: _updateJQueryDataCache,
+                registerCacheAlias: _registerCacheAlias
             },
     
             defaults: {
@@ -296,7 +304,7 @@
          * @returns {jQuery}
          */
         function loadTemplate ( templateProperty ) {
-            return Backbone.$( templateProperty );
+            return $( templateProperty );
         }
     
         /**
@@ -445,8 +453,12 @@
         }
     
         /**
-         * Reads registered data attributes of a given element from the DOM, and updates the jQuery data cache with these
-         * values.
+         * Reads registered data attributes of a given element from the DOM, and updates an existing jQuery data cache with
+         * these values.
+         *
+         * If no jQuery data cache exists, it is NOT created by the call. (This function is meant to be used as an efficient,
+         * internal tool.) If you need to make sure the jQuery data cache is current and in sync with the DOM, and also
+         * create it if it doesn't exist, just call _getDataAttributes() instead.
          *
          * The function is needed because jQuery keeps its own cache of data attributes, but there is no API to clear or
          * circumvent that cache. The jQuery functions $.fn.removeData() and $.removeData() don't do that job: despite their
@@ -455,6 +467,10 @@
          *
          * Here, we force-update the jQuery cache, making sure that changes of the HTML5 data-* attributes in the DOM are
          * picked up.
+         *
+         * The implementation circumvents the numerous bugs of jQuery.fn.data(), in particular when removing data. The
+         * behaviour and bugs of a .data() call vary by jQuery version. For an overview of that mess, see
+         * http://jsbin.com/venuqo/4/edit?html,js,console
          *
          * NB The cache update is limited to the data attributes which have been registered with _registerDataAttribute().
          * By default, only attributes which are "owned" by Backbone.Declarative.Views are updated - ie, the ones describing
@@ -465,7 +481,8 @@
          * @returns {Object}
          */
         function _updateJQueryDataCache ( $elem ) {
-            var dataHash = {};
+            var add = {},
+                remove = [];
     
             if ( $.hasData( $elem[0] ) ) {
     
@@ -474,22 +491,62 @@
                 // Primitive data types. Normally, this will read the "data-tag-name", "data-class-name" and "data-id"
                 // attributes.
                 _.each( registeredDataAttributes.primitives, function ( attributeName ) {
-                    dataHash[attributeName] = $elem.attr( "data-" + attributeName );
-                } );
+                    var attributeValue = $elem.attr( "data-" + attributeName );
     
-                $elem.data( dataHash );
-    
-                // Stringified JSON data. Normally, this just deals with "data-attributes".
-                _.each( registeredDataAttributes.json, function ( attributeName ) {
-                    try {
-                        $elem.data( attributeName, $.parseJSON( $elem.attr( "data-" + attributeName ) ) );
-                    } catch ( err ) {
-                        $elem.removeData( attributeName );
+                    if ( attributeValue === undefined ) {
+                        remove.push( attributeName );
+                    } else {
+                        add[toCamelCase( attributeName )] = attributeValue;
                     }
                 } );
     
+                // Stringified JSON data. Normally, this just deals with "data-attributes".
+                _.each( registeredDataAttributes.json, function ( attributeName ) {
+                    var attributeValue = $elem.attr( "data-" + attributeName );
+    
+                    if ( attributeValue === undefined ) {
+                        remove.push( attributeName );
+                    } else {
+    
+                        try {
+                            add[toCamelCase( attributeName )] = $.parseJSON( attributeValue );
+                        } catch ( err ) {
+                            remove.push( attributeName );
+                        }
+    
+                    }
+                } );
+    
+                if ( remove.length ) $elem.removeData( remove );
+                if ( _.size( add ) ) $elem.data( add );
             }
     
+        }
+    
+        /**
+         * Registers an alternative way to access the cache and set up a custom compiler and loader. Intended for use by
+         * plugins.
+         *
+         * A cache alias just adds syntactic sugar for users wanting to manage and access the cache from a plugin namespace.
+         * The registration creates references to `getCachedTemplate`, `clearCachedTemplate`, `clearCache`, and the `custom` 
+         * object in the alternative namespace.
+         *
+         * You can also register the name of an alias to use on view instances (optional). A property of that name will be
+         * created on each view. It references the declarativeViews property of the view.
+         *
+         * @param {Object} namespaceObject              e.g. Backbone.InlineTemplate
+         * @param {string} [instanceCachePropertyName]  the name of the cache property on a view instance, e.g. "inlineTemplate"
+         */
+        function _registerCacheAlias( namespaceObject, instanceCachePropertyName ) {
+            namespaceObject.getCachedTemplate = Backbone.DeclarativeViews.getCachedTemplate;
+            namespaceObject.clearCachedTemplate = Backbone.DeclarativeViews.clearCachedTemplate;
+            namespaceObject.clearCache = Backbone.DeclarativeViews.clearCache;
+            namespaceObject.custom = Backbone.DeclarativeViews.custom;
+            
+            if ( instanceCachePropertyName ) {
+                instanceCacheAliases.push( instanceCachePropertyName );
+                instanceCacheAliases = _.unique( instanceCacheAliases );
+            }
         }
     
         /**
@@ -587,6 +644,20 @@
         //
         // Generic helpers
         // ---------------
+    
+        /**
+         * Turns a dashed string into a camelCased one.
+         *
+         * Simple implementation, but good enough for data attributes.
+         *
+         * @param   {string} dashed
+         * @returns {string}
+         */
+        function toCamelCase ( dashed ) {
+            return dashed.replace( /([^-])-([a-z])/g, function ( $0, $1, $2 ) {
+                return $1 + $2.toUpperCase();
+            } );
+        }
     
         /**
          * Creates and returns a custom error type.
