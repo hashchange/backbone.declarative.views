@@ -527,6 +527,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v2.2.1
+
+- Updated jQuery dependency to jQuery 3.1
+
 ### v2.2.0
 
 - Added `Backbone.DeclarativeViews.plugins.registerCacheAlias` method for use by plugins

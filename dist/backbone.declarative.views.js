@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v2.2.0
+// Backbone.Declarative.Views, v2.2.1
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
