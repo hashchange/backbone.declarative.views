@@ -10,6 +10,8 @@ As a bonus, you get a Javascript API for direct access to the [template cache][t
 
 Users of Marionette benefit from [automatic, integrated management][marionette-cache-integration] of the template caches which Marionette and Backbone.Declarative.Views provide.
 
+Backbone.Declarative.Views [makes use of data attributes][core] for defining the properties of the `el` on a template tag. Should you need to use fully self-contained templates, which contain the `el` of the view inline in their markup, have a look at [Backbone.Inline.Template][]. It is based on Backbone.Declarative.Views, but provides you with a different syntax. (For the advantages of each, and the trade-offs, see [this comparison][Backbone.Inline.Template-why].)
+
 If you are a happy user of this project already, you can support its development by [donating to it][donations]. You absolutely don't have to, of course, but perhaps it is something you [might actually want to do][donations].
 
 ## Dependencies and setup
@@ -38,7 +40,7 @@ requirejs.config( {
 } );
 ```
 
-### Getting it: Download, Bower, npm
+### Download, Bower, npm
 
 The stable version of Backbone.Declarative.Views is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install backbone.declarative.views`. With npm, it is `npm install backbone.declarative.views`.
 
@@ -91,7 +93,7 @@ And that is the end of it. Processing the template, feeding template vars to it,
 
 There is something else you might have noticed in the example above. The names of the Backbone.View properties have changed when they were written as data attributes.
 
-In compliance with the [HTML5 data attributes][mdn-data-attributes] spec,  `tagName` has turned into `data-tag-name`, and `className` has become `data-class-name`. Likewise, there are a `data-id` and `data-attributes`. Use these names when describing an `el` in a template.
+In compliance with the [HTML5 data attributes][mdn-data-attributes] spec, `tagName` has turned into `data-tag-name`, and `className` has become `data-class-name`. Likewise, there are a `data-id` and `data-attributes`. Use these names when describing an `el` in a template.
 
 #### Define the `attributes` as JSON
 
@@ -159,11 +161,12 @@ In the [example above][basic-usage], the data attribute defines the tag as a `p`
 
 ### Setting the template property to a template string rather than a selector
 
-Yes, that works as well. The template property of a view can be set to an HTML string instead of a selector, as in the following example:
+Yes, that works as well. The template property of a view can be set to an HTML string instead of a selector, as in the following example. If you want to define the `el` in such a string, don't set the data attributes on an element; write them into a comment instead.
 
 ```javascript
-var templateHtml = '<li class="bullet" data-tag-name="ul" data-class-name="list">' +
-                   'template <%= content %> goes here' + 
+var templateHtml = '<!-- data-tag-name="ul" data-class-name="list" -->' +
+                   '<li class="bullet" data-tag-name="ul" data-class-name="list">' +
+                   '  template <%= content %> goes here' + 
                    '</li>',
     view = new Backbone.View( { template: templateHtml } );
 
@@ -171,7 +174,7 @@ console.log( view.el.tagName )   // => prints "UL"
 console.log( view.el.className ) // => prints "list"
 ```
 
-If the template HTML doesn't have a single top-level element, but multiple ones, then the data attributes defining the `el` must be on the first top-level element.
+The position of the comment doesn't matter, it can be at the end or right in the middle of the template string as well. You can also add additional text to that special comment. However, the data attributes defining the `el` have to go into the same, single comment – don't spread them out over multiple ones.
 
 ## Performance: Use the template cache
 
@@ -264,10 +267,7 @@ When you pull data from the cache with `getCachedTemplate()`, you _do not_ get a
 - `html` (string)
   the actual template content if the template has been specified by a selector.
 
-  If you don't define your template with a selector, and rather pass in [a raw HTML template string][raw-html-template-string], the `html` property contains the _inner_ HTML of that string. In case you need the string back verbatim, call `outerHtml()` instead. Please keep in mind that [some HTML strings are uncacheable (see below)][cache-miss-uncacheable-string].
-  
-- `outerHtml` (function)
-  a function returning the full (outer) HTML of the template
+  If you don't define your template with a selector, and rather pass in [a raw HTML template string][raw-html-template-string], the `html` property contains that string.
   
 - `compiled` (function, or undefined)
   the compiled template (ie, a function returning the final HTML, with the template vars filled in) if a
@@ -282,13 +282,15 @@ When you pull data from the cache with `getCachedTemplate()`, you _do not_ get a
 - `attributes` (hash or undefined)
   hash of `el` attributes and their values, if defined by a data attribute
 
-_(Oh, and have you spotted the textbook case of bad API design? One way to get back the template HTML is by reading the `html` **property**, while its twin `outerHtml` is a **function** you have to call. Yes, that seems silly, and yes, it can trip you up._
-
-_But then again, some templates are rather big, and most people don't need the outer HTML. Given today's memory constraints on mobile devices, it seemed better to reconstruct the outer HTML on demand, with a function call, rather than double the memory consumption of the cache by storing near-identical strings for every template.)_
-
 #### What about cache misses?
 
 There won't be a cache miss for any template which exists in the DOM. When you call `getCachedTemplate()` on either a view or the global `Backbone.DeclarativeViews` object, you get the template back. If it is not yet in the cache, it will be put there in the process.
+
+The same happens for any string value you set the template to. If the string is not a selector which matches a DOM node, it is taken to be a [raw HTML string][raw-html-template-string].
+
+For that reason, even invalid or mistyped selectors do not cause a cache miss – they are interpreted as a template string and end up as HTML as well. That is actually beneficial for debugging, more straightforward than a cache miss, as you get to see the mistaken selector string right in the output. But the onus is on you to handle it properly.
+
+Of course, the validity of the selector only matters on first access. If the DOM node is deleted after its content is already in the cache, you get the cached template back.
 
 You do get a cache miss in the following cases.
 
@@ -298,25 +300,11 @@ You do get a cache miss in the following cases.
 
   Backbone.Declarative.Views does not handle these kinds of template definitions. It simply leaves them alone. Consequentially, the templates do not make it into the built-in cache.
 
-- The selector does not match a DOM node.
-
-  That only matters on first access. If the DOM node is deleted after its content is already in the cache, you get the cached template back.
-
-- <a name="cache-miss-uncacheable-string"></a>The template is not a selector but a [raw HTML string][raw-html-template-string], and that string can't be turned into a template _element_ (or a set of elements).
-
-  Backbone.Declarative.Views hands the template string over to `Backbone.$` (read: jQuery) for processing, or to a [custom loader][custom-loader] if you have defined one. If jQuery, or your loader, can't handle the string, you get a cache miss.
-
-  In practice, that happens when you pass the _inner_ HTML of a template to your view, and parts of the HTML are not wrapped in a tag. Consider a view like this:
-
-  ```javascript
-  var view = new View( {
-    template: "Template <%= content %> <em>without</em> a tag around it."
-  } );
-  ```
+- <a name="cache-miss-uncacheable-string"></a>You use a [custom template loader][custom-loader] and it can't handle your template string, throwing an error or returning an empty jQuery object as a result. Because the template loader can't handle the template, Backbone.Declarative.Views ignores it.
   
-  The loader, jQuery, can't deal with the string. There would have to be HTML tags around the plain text, but without them, jQuery throws an error (which is caught, silently). Because the template loader can't handle it, Backbone.Declarative.Views ignores it. This is an uncacheable template as far as Backbone.Declarative.Views is concerned.
+  The default loader of Backbone.Declarative.Views does not produce cache misses of that kind, though. The only string leading to a cache miss is an empty template string. And an empty template string should be considered a misconfiguration anyway.
   
-In all of these cases, `getCachedTemplate()` returns undefined.
+In these cases, `getCachedTemplate()` returns undefined.
 
 ### Keeping compiled templates in the cache
 
@@ -360,7 +348,7 @@ Backbone.DeclarativeViews.custom.loadTemplate = function ( templateProperty ) {
 
 The custom loader is called with the template property of the view as the only argument. That argument is always a string. The custom loader must return a jQuery object (or more precisely an instance of `Backbone.$`, which usually means jQuery).
 
-The returned jQuery object is considered to be the template node. The template HTML should best be _inside_ that node (rather than _be_ the node), though it is essentially up to you how you set that up. Inner and outer HTML of the node can be retrieved from the `html` property and `outerHtml()` method [of the cache entry][cache-entry].
+The returned jQuery object is considered to be the template node. The template HTML has to be _inside_ that node (rather than _be_ the node). The inner HTML of the node can be retrieved from the `html` property [of the cache entry][cache-entry].
 
 ##### Errors
 
@@ -527,6 +515,15 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v3.0.0
+
+- Made the `.html` property of a cache entry [return the full HTML][cache-entry] of a raw template string (previously: the inner HTML only)
+- Made all raw template strings cacheable, including those with text at the top level, outside of a tag
+- Removed the `outerHtml()` method from cache entries
+- In raw template strings, `el` attributes are [defined inside a comment][raw-html-template-string] (previously: with attributes on the first top-level tag)
+- Invalid template selectors are [treated as template strings][cache-misses], no longer cause a cache miss
+- Fixed parsing errors, caused by invalid HTML or unusual template directives, when caching raw template strings
+
 ### v2.2.1
 
 - Updated jQuery dependency to jQuery 3.1
@@ -603,6 +600,7 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [Underscore]: http://underscorejs.org/ "Underscore.js"
 [Backbone]: http://backbonejs.org/ "Backbone.js"
 [Marionette]: https://github.com/marionettejs/backbone.marionette#readme "Marionette: a composite application library for Backbone.js"
+[Backbone.Inline.Template]: https://github.com/hashchange/backbone.inline.template "Backbone.Inline.Template"
 [Node.js]: http://nodejs.org/ "Node.js"
 [Bower]: http://bower.io/ "Bower: a package manager for the web"
 [npm]: https://npmjs.org/ "npm: Node Packaged Modules"
@@ -618,6 +616,7 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [dist-amd-dev]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/amd/backbone.declarative.views.js "backbone.declarative.views.js, AMD build"
 [dist-amd-prod]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/amd/backbone.declarative.views.min.js "backbone.declarative.views.min.js, AMD build"
 
+[Backbone.Inline.Template-why]: https://github.com/hashchange/backbone.inline.template#why-use-it "Backbone.Inline.Template: Why use it?"
 [mdn-data-attributes]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-* "MDN – Global HTML attributes: data-*"
 [Marionette.TemplateCache.clear]: http://marionettejs.com/docs/marionette.templatecache.html#clear-items-from-cache "Marionette.TemplateCache: Clear items from cache"
 [Marionette.TemplateCache.loadTemplate]: http://marionettejs.com/docs/marionette.templatecache.html#override-template-retrieval "Marionette.TemplateCache: Override template retrieval"
