@@ -97,10 +97,11 @@
 
                 it( 'clears a given template from the DeclarativeViews cache if the template string is a selector', function () {
                     // We test this by deleting the template node after first access, then clearing the cache.
-                    // On second access, the cache should return undefined for the selector.
+                    // On second access, the cache should store the selector string itself (as the node no
+                    // longer exists).
                     $templateNode.remove();
                     Backbone.Marionette.TemplateCache.clear( "#template" );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).html ).to.equal( "#template" );
                 } );
 
                 it( 'allows changes made to the underlying template node to be picked up by Marionette', function () {
@@ -140,9 +141,9 @@
 
                     Backbone.Marionette.TemplateCache.clear( "#template", "#template2", "#template3" );
 
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.be.undefined;
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.be.undefined;
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).html ).to.equal( "#template" );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ).html ).to.equal( "#template2" );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ).html ).to.equal( "#template3" );
                 } );
 
                 it( 'clears multiple templates from the Marionette cache when the selectors are passed as an array', function () {
@@ -164,9 +165,9 @@
 
                     Backbone.Marionette.TemplateCache.clear( [ "#template", "#template2", "#template3" ] );
 
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.be.undefined;
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.be.undefined;
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).html ).to.equal( "#template" );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ).html ).to.equal( "#template2" );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ).html ).to.equal( "#template3" );
                 } );
 
                 it.skip( 'does not clear other templates from the Marionette cache', function () {
@@ -208,9 +209,10 @@
                     // Second call, should go ahead without error
                     Backbone.Marionette.TemplateCache.clear( "#template" );
 
-                    // Checking that the cache is still empty, and querying it returns the expected error/undefined
+                    // Checking that the cache is still empty, and querying it throws the expected error for Marionette,
+                    // and stores the selector string for Backbone.Declarative.Views (because the node no longer exists)
                     expect( function () { Backbone.Marionette.TemplateCache.get( "#template" ) } ).to.throw( Error, 'Could not find template: "#template"' );
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).html ).to.equal( "#template" );
                 } );
 
                 it( 'fails silently if the template is a string containing text which is not wrapped in HTML elements (uncacheable string), and leaves the existing cache intact', function () {
@@ -265,16 +267,17 @@
 
                 it( 'clears the entire DeclarativeViews cache', function () {
                     // We test this by deleting all template nodes after first access, then clearing the cache.
-                    // On second access, the cache should return undefined for each selector.
+                    // On second access, the cache should store the selector string itself for each selector
+                    // (as the node no longer exists).
                     $templateNode.remove();
                     $templateNode2.remove();
                     $templateNode3.remove();
 
                     Backbone.Marionette.TemplateCache.clear();
 
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ) ).to.be.undefined;
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ) ).to.be.undefined;
-                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ) ).to.be.undefined;
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).html ).to.equal( "#template" );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template2" ).html ).to.equal( "#template2" );
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template3" ).html ).to.equal( "#template3" );
                 } );
 
             } );
