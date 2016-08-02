@@ -597,6 +597,8 @@ MIT.
 
 Copyright (c) 2014-2016 Michael Heim.
 
+Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [See file][data-provider.js].
+
 [jQuery]: http://jquery.com/ "jQuery"
 [Underscore]: http://underscorejs.org/ "Underscore.js"
 [Backbone]: http://backbonejs.org/ "Backbone.js"
@@ -654,3 +656,5 @@ Copyright (c) 2014-2016 Michael Heim.
 [donations-paypal-button]: https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif "Donate with Paypal"
 [license]: #license "License"
 [hashchange-projects-overview]: http://hashchange.github.io/ "Hacking the front end: Backbone, Marionette, jQuery and the DOM. An overview of open-source projects by @hashchange."
+
+[data-provider.js]: https://github.com/hashchange/backbone.declarative.views/blob/master/spec/helpers/data-provider.js "Source code of data-provider.js"
