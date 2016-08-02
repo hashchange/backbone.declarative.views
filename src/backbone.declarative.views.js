@@ -10,7 +10,15 @@
             primitives: [],
             json: []
         },
-        
+
+        rxElDefinitionComment = /<!--(?:(?!-->)[\s\S])*?data-(?:tag-name|class-name|id|attributes)\s*=\s*(['"])[\s\S]+?\1[\s\S]*?-->/,
+        rxElDataAttributes = {
+            "data-tag-name":     /data-tag-name\s*=\s*(['"])([\s\S]+?)\1/,
+            "data-class-name": /data-class-name\s*=\s*(['"])([\s\S]+?)\1/,
+            "data-id":                 /data-id\s*=\s*(['"])([\s\S]+?)\1/,
+            "data-attributes": /data-attributes\s*=\s*(['"])([\s\S]+?)\1/
+        },
+
         GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
         CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
@@ -119,7 +127,7 @@
     function getTemplateData ( templateProp ) {
         var data;
 
-        if ( _.isString( templateProp ) ) {
+        if ( templateProp && _.isString( templateProp ) ) {
 
             data = templateCache[ templateProp ];
             if ( ! data ) data = _createTemplateCache( templateProp );
@@ -271,14 +279,87 @@
     }
 
     /**
-     * Defines the default template loader. Accepts a selector string, or anything which can be processed by jQuery, and
-     * returns the template node (usually a <script> or <template> node) in a jQuery wrapper.
+     * Defines the default template loader. Accepts a selector string and returns the template node (usually a <script>
+     * or <template> node) in a jQuery wrapper.
      *
-     * @param   {string|jQuery|HTMLElement} templateProperty
+     * Is only ever called with a string argument. There is no need to handle other argument types here, or guard
+     * against them.
+     *
+     * Interprets the argument as a selector first and returns the corresponding node if it exists. If not, the argument
+     * is interpreted as a raw HTML/template string and wrapped in a script tag (of type text/x-template). If the raw
+     * template string contains a comment describing the el, the related data attributes are created on the script tag.
+     *
+     * NB Raw template strings are never altered, and not interpreted (apart from looking for the el-related comment).
+     *
+     * @param   {string} templateProperty
      * @returns {jQuery}
      */
     function loadTemplate ( templateProperty ) {
-        return $( templateProperty );
+        var $template;
+
+        try {
+            $template = $( templateProperty );
+
+            // If the template is not in the DOM, treat the template property as a raw template string instead. That
+            // part is handled in `catch`, and should not be guarded against further errors here. To switch to that
+            // process, just throw an error.
+            if ( !$.contains( document.documentElement, $template[0] ) ) throw new Error();
+        } catch ( err ) {
+            $template = _wrapRawTemplate( templateProperty );
+
+            // If the template string cannot be retrieved unaltered even after wrapping it in a script tag, bail out by
+            // throwing a silent error (will be caught, and not propagated further, in _createTemplateCache()).
+            if ( $template.html() !== templateProperty ) throw new Error( "Failed to wrap template string in script tag without altering it" );
+        }
+
+        return $template;
+    }
+
+    /**
+     * Takes a raw HTML/template string and wraps it in a script tag (of type "text/x-template"). In the process, it
+     * detects el-related data attributes which are contained in an HTML comment, and sets them on the script tag.
+     * Returns the script element, as a jQuery object.
+     *
+     * @param   {string} templateString
+     * @returns {jQuery}
+     */
+    function _wrapRawTemplate( templateString ) {
+        var $wrapper = $( "<script />" )
+                .attr( "type", "text/x-template" )
+                .text( templateString ),
+
+            elDataAttributes = _getEmbeddedElAttributes( templateString );
+
+        if ( elDataAttributes ) $wrapper.attr( elDataAttributes );
+
+        return $wrapper;
+    }
+
+    /**
+     * Takes a raw HTML/template string and looks for el-related data attributes which are contained in a comment.
+     * Returns the attributes hash, or undefined if no attributes are found.
+     *
+     * The keys in the hash are the data attribute names, ie they include the "data-" prefix.
+     *
+     * @param   {string} templateString
+     * @returns {Object|undefined}
+     */
+    function _getEmbeddedElAttributes ( templateString ) {
+        var elDataAttributes = {},
+
+            elDefinitionMatch = rxElDefinitionComment.exec( templateString ),
+            elDefinitionComment = elDefinitionMatch && elDefinitionMatch[0];
+
+        if ( elDefinitionComment ) {
+            _.each( rxElDataAttributes, function ( rxAttributeMatcher, attributeName ) {
+                var match = rxAttributeMatcher.exec( elDefinitionComment ),
+                    attributeValue = match && match[2];
+
+                if ( attributeValue ) elDataAttributes[attributeName] = attributeValue;
+            } );
+        }
+
+        return _.size( elDataAttributes ) ? elDataAttributes : undefined;
     }
 
     /**
