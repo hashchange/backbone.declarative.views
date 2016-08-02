@@ -280,7 +280,7 @@
      * Checks if the subject, the value returned by a cache query, matches expectations. Ie, it must contain
      *
      * - the expected properties and values for a given set of data attributes
-     * - the template HTML structure (html, outerHtml) for a given outer HTML
+     * - the template HTML (html property) for a given outer HTML
      * - a "compiled" property which is undefined by default, or holds a function returning the final HTML
      *
      * The expected outerHtml string needn't have the data attributes applied - this is handled by the assertion. Data
@@ -359,7 +359,6 @@
 
         // Build the expected object. It is not exactly identical to the corresponding cache entry:
         //
-        // - Its outerHtml property holds the actual outer HTML and not a function producing it.
         // - Its `compiled` property holds the return value of the compiledTemplate expectation, if it has been
         //   provided, rather than the compiledTemplate function itself.
         //
@@ -368,7 +367,6 @@
             dataAttributesToProperties( dataAttributes ),
             {
                 html: $template.html(),
-                outerHtml: $template.prop( "outerHTML" ),
                 compiled: compiled
             } );
 
@@ -377,11 +375,6 @@
         // Check if the test subject is a an object.
         new Assertion( cacheEntry ).is.an( 'object' );
 
-        // Check if it has an outerHtml property which is a function.
-        new Assertion( cacheEntry ).to.have.ownProperty( "outerHtml" );
-        new Assertion( cacheEntry.outerHtml ).to.be.a( "function", "outerHtml property" );
-        new Assertion( cacheEntry.outerHtml() ).to.equal( expected.outerHtml, "return value of outerHtml()" );
-
         // Check if it has a "compiled" property matching the expectation, if provided
         new Assertion( cacheEntry ).to.have.ownProperty( "compiled" );
         if ( compiled ) {
@@ -389,10 +382,9 @@
             new Assertion( cacheEntry.compiled() ).to.equal( expected.compiled, "return value of compiled()" );
         }
 
-        // Create a clone of the test subject, with the outerHtml function being replaced by the function return value.
-        // A `compiled` function is also replaced by its return value, if it exists.
+        // Create a clone of the test subject. In the clone, the `compiled` function is replaced by its return value, if
+        // it exists.
         transformed = _.clone( cacheEntry );
-        transformed.outerHtml = cacheEntry.outerHtml();
         transformed.compiled = cacheEntry.compiled && cacheEntry.compiled();
 
         // Compare the transformed test subject clone to the expected object.

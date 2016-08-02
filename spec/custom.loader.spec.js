@@ -92,12 +92,6 @@
                 expect( view.declarativeViews.getCachedTemplate() ).to.returnCacheValueFor( dataAttributes, outerTemplateHtml );
             } );
 
-            it( 'its outer HTML is produced by the outerHtml function which is returned by the cache', function () {
-                var retrieved = view.declarativeViews.getCachedTemplate();
-                expect( retrieved.outerHtml ).to.be.a( "function" );
-                expect( retrieved.outerHtml() ).to.equal( outerTemplateHtml );
-            } );
-
             it( 'its inner HTML is returned as the template HTML by the cache', function () {
                 expect( view.declarativeViews.getCachedTemplate().html ).to.eql( innerTemplateHtml );
             } );

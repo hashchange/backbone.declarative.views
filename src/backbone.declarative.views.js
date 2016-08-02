@@ -378,7 +378,7 @@
      * @returns {CachedTemplateData|Uncacheable}
      */
     function _createTemplateCache( templateProp ) {
-        var $template, data, html, outerTagParts,
+        var $template, data, html,
 
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
             defaultLoader = Backbone.DeclarativeViews.defaults.loadTemplate,
@@ -405,11 +405,9 @@
             data = _getDataAttributes( $template ) ;
 
             html = $template.html();
-            outerTagParts = _getOuterTagParts( $template, html );
 
             templateCache[cacheId] = {
                 html: html,
-                outerHtml: _.partial( _outerHtml, cacheId, outerTagParts[0], outerTagParts[1] ),
                 compiled: _compileTemplate( html, $template ),
 
                 tagName: data.tagName,
@@ -605,39 +603,6 @@
     }
 
     /**
-     * Restores the outer HTML of a template stored in the cache, given the cache ID and the opening and closing tag of
-     * the outer node. Returns the HTML as a string.
-     *
-     * @param   {string} cacheId
-     * @param   {string} openingTag
-     * @param   {string} closingTag
-     * @returns {string}
-     */
-    function _outerHtml ( cacheId, openingTag, closingTag ) {
-        return openingTag + templateCache[cacheId].html + closingTag;
-    }
-
-    /**
-     * Returns the opening and closing tag of the template node, given the $template. Returns them in an array
-     * (0: opening tag, 1: closing tag).
-     *
-     * If the inner HTML of the template has already been extracted by the calling code, it is more efficient to pass it
-     * in as well.
-     *
-     * @param   {jQuery} $template
-     * @param   {string} [html]     the inner HTML of the template node, if already available
-     * @returns {string[]}
-     */
-    function _getOuterTagParts ( $template, html ) {
-        if ( html === undefined ) html = $template.html();
-
-        return $template
-            .prop( "outerHTML" )
-            .replace( html, "\n" )
-            .split( "\n" );
-    }
-
-    /**
      * Checks if an error belongs to the error types of Backbone.DeclarativeViews.
      *
      * ATTN Update this check as new error types are added to Backbone.DeclarativeViews.
@@ -753,7 +718,6 @@
      * @type  {Object}
      *
      * @property {string}              html
-     * @property {Function}            outerHtml
      * @property {Function|undefined}  compiled
      * @property {string|undefined}    tagName
      * @property {string|undefined}    className

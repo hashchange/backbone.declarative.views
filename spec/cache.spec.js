@@ -214,12 +214,6 @@
                     expect( view.declarativeViews.getCachedTemplate().html ).to.equal( $templateNode.html() );
                 } );
 
-                it( 'returns a function producing the outer HTML of the template when called', function () {
-                    var retrieved = view.declarativeViews.getCachedTemplate();
-                    expect( retrieved.outerHtml ).to.be.a( "function" );
-                    expect( retrieved.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
-                } );
-
             } );
 
             describe( 'with a template element specified as a raw HTML string', function () {
@@ -392,11 +386,6 @@
 
                 it( 'returns the inner HTML of the template', function () {
                     expect( retrieved.html ).to.equal( $templateNode.html() );
-                } );
-
-                it( 'returns a function producing the outer HTML of the template when called', function () {
-                    expect( retrieved.outerHtml ).to.be.a( "function" );
-                    expect( retrieved.outerHtml() ).to.equal( $templateNode.prop( "outerHTML" ) );
                 } );
 
             } );
