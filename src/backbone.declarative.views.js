@@ -473,17 +473,36 @@
      * When a data attribute is used to store stringified JSON objects, the flag `{ isJSON: true }` must be set in the
      * options. Primitive data attributes (of type string, number, boolean) don't need a flag.
      *
+     * The names "html" and "compiled" are illegal because they are reserved. They are already in use in the cache
+     * object, so there could be a conflict further down the line. Also, a name can only be registered once. And, as
+     * said before, it must not be prefixed with "data-". Violations of these rules cause an error to be thrown.
+     *
      * @param {string}  name                    as in the data attribute (e.g. "tag-name", not "tagName"), and without "data-" prefix
      * @param {object}  [options]
      * @param {boolean} [options.isJSON=false]
-     * @private
      */
     function _registerDataAttribute ( name, options ) {
-        var type = options && options.isJSON ? "json" : "primitives",
+        var existingNames = _getRegisteredDataAttributeNames(),
+            fullName = "data-" + name,
+            type = options && options.isJSON ? "json" : "primitives",
             names = registeredDataAttributes[type];
 
+        if ( name.indexOf( "data-" ) === 0 ) throw new CustomizationError( 'registerDataAttribute(): Illegal attribute name "' + name + '", must be registered without "data-" prefix' );
+        if ( name === "html" || name === "compiled" ) throw new CustomizationError( 'registerDataAttribute(): Cannot register attribute name "' + name + '" because it is reserved' );
+        if ( _.contains( existingNames, name ) ) throw new CustomizationError( 'registerDataAttribute(): Cannot register attribute name "' + name + '" because it has already been registered' );
+
+        // Add the name to the list of registered data attributes
         names.push( name );
         registeredDataAttributes[type] = _.uniq( names );
+    }
+
+    /**
+     * Returns the names of all registered attributes. These names are dashed but don't include the "data-" prefix.
+     *
+     * @returns {string[]}
+     */
+    function _getRegisteredDataAttributeNames () {
+        return registeredDataAttributes.primitives.concat( registeredDataAttributes.json );
     }
 
     /**

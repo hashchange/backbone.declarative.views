@@ -193,6 +193,63 @@
 
             } );
 
+            describe( 'Registering a data attribute', function () {
+
+                describe( 'Invalid attribute names. Registering a data attribute throws an error', function () {
+
+                    it( 'when the reserved word "html" is used as the name', function () {
+                        var attributeName = "html";
+
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName )
+                        } ).to.throw( Backbone.DeclarativeViews.CustomizationError, 'registerDataAttribute(): Cannot register attribute name "' + attributeName + '" because it is reserved' );
+                    } );
+
+                    it( 'when the reserved word "compiled" is used as the name', function () {
+                        var attributeName = "compiled";
+
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+                        } ).to.throw( Backbone.DeclarativeViews.CustomizationError, 'registerDataAttribute(): Cannot register attribute name "' + attributeName + '" because it is reserved' );
+                    } );
+
+                    it( 'when the name matches a default data attribute of Backbone.Declarative.Views, which are all registered already', function () {
+                        var attributeName = "tag-name";
+
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+                        } ).to.throw( Backbone.DeclarativeViews.CustomizationError, 'registerDataAttribute(): Cannot register attribute name "' + attributeName + '" because it has already been registered' );
+                    } );
+
+                    it( 'when the name matches a default data attribute of Backbone.Declarative.Views, which are all registered already', function () {
+                        var attributeName = "tag-name";
+
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+                        } ).to.throw( Backbone.DeclarativeViews.CustomizationError, 'registerDataAttribute(): Cannot register attribute name "' + attributeName + '" because it has already been registered' );
+                    } );
+
+                    it( 'when the name matches a custom attribute which has already been registered', function () {
+                        var attributeName = _.uniqueId( "test-unique" );
+                        Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+                        } ).to.throw( Backbone.DeclarativeViews.CustomizationError, 'registerDataAttribute(): Cannot register attribute name "' + attributeName + '" because it has already been registered' );
+                    } );
+
+                    it( 'when the name includes the "data-" prefix', function () {
+                        var attributeName = _.uniqueId( "data-test-unique" );
+
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+                        } ).to.throw( Backbone.DeclarativeViews.CustomizationError, 'registerDataAttribute(): Illegal attribute name "' + attributeName + '", must be registered without "data-" prefix' );
+                    } );
+
+                } );
+
+            } );
+
             describe( 'Attributes are retrieved with getDataAttributes()', function () {
 
                 describe( 'Return values', function () {
