@@ -11,13 +11,8 @@
             json: []
         },
 
-        rxElDefinitionComment = /<!--(?:(?!-->)[\s\S])*?data-(?:tag-name|class-name|id|attributes)\s*=\s*(['"])[\s\S]+?\1[\s\S]*?-->/,
-        rxElDataAttributes = {
-            "data-tag-name":     /data-tag-name\s*=\s*(['"])([\s\S]+?)\1/,
-            "data-class-name": /data-class-name\s*=\s*(['"])([\s\S]+?)\1/,
-            "data-id":                 /data-id\s*=\s*(['"])([\s\S]+?)\1/,
-            "data-attributes": /data-attributes\s*=\s*(['"])([\s\S]+?)\1/
-        },
+        rxElDefinitionComment,
+        rxRegisteredDataAttributes = {},
 
         GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
@@ -351,7 +346,7 @@
             elDefinitionComment = elDefinitionMatch && elDefinitionMatch[0];
 
         if ( elDefinitionComment ) {
-            _.each( rxElDataAttributes, function ( rxAttributeMatcher, attributeName ) {
+            _.each( rxRegisteredDataAttributes, function ( rxAttributeMatcher, attributeName ) {
                 var match = rxAttributeMatcher.exec( elDefinitionComment ),
                     attributeValue = match && match[2];
 
@@ -477,6 +472,24 @@
      * object, so there could be a conflict further down the line. Also, a name can only be registered once. And, as
      * said before, it must not be prefixed with "data-". Violations of these rules cause an error to be thrown.
      *
+     * Registering a data attribute has the following effects:
+     *
+     * - When a registered data attribute is queried by Backbone.Declarative.Views, the attribute is refreshed from the
+     *   DOM and updated in the jQuery data cache. Changes to the attribute in the DOM are picked up that way. The
+     *   update can also be triggered externally, e.g. by a plugin, with `updateJqueryDataCache()`.
+     *
+     * - A registered data attribute is detected in a raw HTML/template string, provided that it is placed into a
+     *   comment. It must be written as it would appear on a script or template tag, ie in dashed form and including the
+     *   "data-" prefix, just like the standard `el`-defining attributes. Custom attributes and `el`-defining attributes
+     *   must be placed into the same, single comment.
+     *
+     *   The registered attribute is then created on the temporary script tag which is wrapped around the template
+     *   string, along with the `el`-defining data attributes. But unlike these, the custom attribute does not make it
+     *   into the cache (nor does the script tag).
+     *
+     *   However, the script tag can be accessed and examined by a custom loader. For that to happen, the custom loader
+     *   has to invoke the default loader before processing the result further. Custom attributes can be read this way.
+     *
      * @param {string}  name                    as in the data attribute (e.g. "tag-name", not "tagName"), and without "data-" prefix
      * @param {object}  [options]
      * @param {boolean} [options.isJSON=false]
@@ -494,6 +507,14 @@
         // Add the name to the list of registered data attributes
         names.push( name );
         registeredDataAttributes[type] = _.uniq( names );
+
+        // Create amd store a regex matching the attribute and its value in an HTML/template string, for transfer onto a
+        // wrapper node (see _wrapRawTemplate())
+        rxRegisteredDataAttributes[fullName] = new RegExp( fullName + "\\s*=\\s*(['\"])([\\s\\S]+?)\\1" );
+
+        // Update the regular expression which tests an HTML/template string and detects a comment containing registered
+        // attributes.
+        rxElDefinitionComment = _createElDefinitionCommentRx();
     }
 
     /**
@@ -503,6 +524,19 @@
      */
     function _getRegisteredDataAttributeNames () {
         return registeredDataAttributes.primitives.concat( registeredDataAttributes.json );
+    }
+
+    /**
+     * Returns a regular expression which tests an HTML/template string and detects a comment containing at least one
+     * registered attribute. Stops after the first matching comment is found (no /g flag).
+     *
+     * NB When the default el-related attributes are registered, this is the resulting regex:
+     * /<!--(?:(?!-->)[\s\S])*?data-(?:tag-name|class-name|id|attributes)\s*=\s*(['"])[\s\S]+?\1[\s\S]*?-->/
+     *
+     * @returns {RegExp}
+     */
+    function  _createElDefinitionCommentRx () {
+        return new RegExp( "<!--(?:(?!-->)[\\s\\S])*?data-(?:" + _getRegisteredDataAttributeNames().join( "|" ) + ")\\s*=\\s*(['\"])[\\s\\S]+?\\1[\\s\\S]*?-->" );
     }
 
     /**

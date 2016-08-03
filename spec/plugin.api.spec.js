@@ -248,6 +248,93 @@
 
                 } );
 
+                describe( 'Detection of registered custom attributes in raw HTML/template strings', function () {
+
+                    describe( 'When a comment in the raw HTML/template string contains', function () {
+
+                        var attributeName, customLoaderData, expected;
+
+                        beforeEach( function () {
+                            var templateHtml;
+
+                            // Set up the custom loader and an object for preserving its internal state.
+                            customLoaderData = {};
+
+                            Backbone.DeclarativeViews.custom.loadTemplate = function ( templateProperty ) {
+                                var $template = Backbone.DeclarativeViews.defaults.loadTemplate( templateProperty );
+
+                                customLoaderData.observedDataAtributes = $template.data();
+                                return $template;
+                            };
+
+                            // Create the template
+                            attributeName = _.uniqueId( "test-unique" );
+                            templateHtml = '<!-- data-' + attributeName + '="foo" --><li class="bullet"></li>';
+
+                            View = Backbone.View.extend( { template: templateHtml } );
+
+                            expected = {};
+                            expected[toCamelCase( attributeName )] = "foo";
+                        } );
+
+                        afterEach( function () {
+                            Backbone.DeclarativeViews.custom.loadTemplate = undefined;
+                        } );
+
+                        describe( 'a registered custom data attribute', function () {
+
+                            beforeEach( function () {
+                                Backbone.DeclarativeViews.plugins.registerDataAttribute( attributeName );
+                                view = new View();
+                            } );
+
+                            it( 'it is detected and can be accessed by a custom loader', function () {
+                                // To reap the benefits of attribute detection, a custom loader must invoke the default
+                                // loader. It can then access the data attributes on the <script> wrapper tag. See
+                                // _registerDataAttribute().
+                                expect( customLoaderData.observedDataAtributes ).to.containSubset( expected );
+                            } );
+
+                            it( 'it does not show up in the cache', function () {
+                                // This is by design. If custom attributes appeared in the cache, it might break user
+                                // code which iterates over the cache properties and expects the cache to have the
+                                // documented, standard properties only.
+
+                                // We check for the presence of all variants, ie "attribute-name", "data-attribute-name",
+                                // "attributeName", "dataAttributeName"
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( attributeName );
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( "data-" + attributeName );
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( toCamelCase( attributeName ) );
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( toCamelCase( "data-" + attributeName ) );
+                            } );
+                            
+                        } );
+
+                        describe( 'an unregistered custom data attribute', function () {
+
+                            beforeEach( function () {
+                                view = new View();
+                            } );
+
+                            it( 'it is ignored and cannot be accessed by a custom loader', function () {
+                                expect( customLoaderData.observedDataAtributes ).not.to.containSubset( expected );
+                            } );
+
+                            it( 'it does not show up in the cache', function () {
+                                // We check for the presence of all variants, ie "attribute-name", "data-attribute-name",
+                                // "attributeName", "dataAttributeName"
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( attributeName );
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( "data-" + attributeName );
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( toCamelCase( attributeName ) );
+                                expect( view.declarativeViews.getCachedTemplate() ).not.to.have.key( toCamelCase( "data-" + attributeName ) );
+                            } );
+                            
+                        } );
+                        
+                    } );
+
+                } );
+
             } );
 
             describe( 'Attributes are retrieved with getDataAttributes()', function () {
