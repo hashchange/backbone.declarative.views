@@ -24,11 +24,7 @@ function dataAttributesToProperties ( dataAttributesHash ) {
 
     $.each( dataAttributesHash, function ( key, value ) {
         // Drop the "data-" prefix, then convert to camelCase
-        key = key
-            .replace( /^data-/, "" )
-            .replace( /-([a-z])/gi, function ( $0, $1 ) {
-                return $1.toUpperCase();
-            } );
+        key = toCamelCase( key.replace( /^data-/, "" ) );
 
         try {
             value = $.parseJSON( value );
@@ -52,9 +48,7 @@ function propertiesToDataAttributes ( attributesHash ) {
 
     $.each( attributesHash, function ( key, value ) {
         // Convert camelCase to dashed notation, then add the "data-" prefix
-        key = "data-" + key.replace( /([a-z])([A-Z])/g, function ( $0, $1, $2 ) {
-                return $1 + "-" + $2.toLowerCase();
-            } );
+        key = "data-" + toDashed( key );
 
         if ( $.isPlainObject( value ) ) value = JSON.stringify( value );
 
@@ -102,7 +96,7 @@ function attributesHashToString ( attributesHash, options ) {
 }
 
 /**
- * Returns a transformed hash in which all camel-cased property names have been replaced by dashed property names. The
+ * Returns a transformed hash in which all camelCased property names have been replaced by dashed property names. The
  * input hash remains untouched.
  *
  * Property values are not modified.
@@ -118,14 +112,61 @@ function toDashedProperties ( hash ) {
     var transformed = {};
 
     _.each( hash, function ( value, key ) {
-        var transformedKey = key.replace( /([a-z])([A-Z])/g, function ( $0, $1, $2 ) {
-            return $1 + "-" + $2.toLowerCase();
-        } );
-
-        transformed[transformedKey] = value;
+        transformed[toDashed( key )] = value;
     } );
 
     return transformed;
+}
+
+/**
+ * Returns a transformed hash in which all dashed property names have been replaced by camelCased property names. The
+ * input hash remains untouched.
+ *
+ * Property values are not modified.
+ *
+ * Simple implementation, but good enough for the attribute names we deal with here.
+ *
+ * Example: { "foo-bar": "what-ever" } => { fooBar: "what-ever" }
+ *
+ * @param   {Object} hash
+ * @returns {Object}
+ */
+function toCamelCasedProperties ( hash ) {
+    var transformed = {};
+
+    _.each( hash, function ( value, key ) {
+        transformed[toCamelCase( key )] = value;
+    } );
+
+    return transformed;
+}
+
+/**
+ * Converts a camelCased label into a dashed label.
+ *
+ * Simple implementation, but good enough for the attribute names we deal with here.
+ *
+ * @param   {string} label
+ * @returns {string}
+ */
+function toDashed ( label ) {
+    return label.replace( /([a-z])([A-Z])/g, function ( $0, $1, $2 ) {
+        return $1 + "-" + $2.toLowerCase();
+    } );
+}
+
+/**
+ * Converts a dashed label into a camelCased label.
+ *
+ * Simple implementation, but good enough for the attribute names we deal with here.
+ *
+ * @param   {string} label
+ * @returns {string}
+ */
+function toCamelCase ( label ) {
+    return label.replace( /-([a-z])/gi, function ( $0, $1 ) {
+        return $1.toUpperCase();
+    } );
 }
 
 /**
