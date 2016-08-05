@@ -3,7 +3,40 @@
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
 
-;( function ( Backbone, _ ) {
+;( function ( root, factory ) {
+    "use strict";
+
+    // UMD for a Backbone plugin. Supports AMD, Node.js, CommonJS and globals.
+    //
+    // - Code lives in the Backbone namespace.
+    // - The module does not export a value.
+    // - The module does not create a global.
+
+    var supportsExports = typeof exports === "object" && exports && !exports.nodeType && typeof module === "object" && module && !module.nodeType;
+
+    // AMD:
+    // - Some AMD build optimizers like r.js check for condition patterns like the AMD check below, so keep it as is.
+    // - Check for `exports` after `define` in case a build optimizer adds an `exports` object.
+    // - The AMD spec requires the dependencies to be an array **literal** of module IDs. Don't use a variable there,
+    //   or optimizers may fail.
+    if ( typeof define === "function" && typeof define.amd === "object" && define.amd ) {
+
+        // AMD module
+        define( [ "underscore", "backbone" ], factory );
+
+    } else if ( supportsExports ) {
+
+        // Node module, CommonJS module
+        factory( require( "underscore" ), require( "backbone" ) );
+
+    } else  {
+
+        // Global (browser or Rhino)
+        factory( _, Backbone );
+
+    }
+
+}( this, function ( _, Backbone ) {
     "use strict";
 
     var originalClearCache,                     // for Marionette only
@@ -16,13 +49,8 @@
             json: []
         },
 
-        rxElDefinitionComment = /<!--(?:(?!-->)[\s\S])*?data-(?:tag-name|class-name|id|attributes)\s*=\s*(['"])[\s\S]+?\1[\s\S]*?-->/,
-        rxElDataAttributes = {
-            "data-tag-name":     /data-tag-name\s*=\s*(['"])([\s\S]+?)\1/,
-            "data-class-name": /data-class-name\s*=\s*(['"])([\s\S]+?)\1/,
-            "data-id":                 /data-id\s*=\s*(['"])([\s\S]+?)\1/,
-            "data-attributes": /data-attributes\s*=\s*(['"])([\s\S]+?)\1/
-        },
+        rxElDefinitionComment,
+        rxRegisteredDataAttributes = {},
 
         GenericError = createCustomErrorType( "Backbone.DeclarativeViews.Error" ),
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
@@ -356,7 +384,7 @@
             elDefinitionComment = elDefinitionMatch && elDefinitionMatch[0];
 
         if ( elDefinitionComment ) {
-            _.each( rxElDataAttributes, function ( rxAttributeMatcher, attributeName ) {
+            _.each( rxRegisteredDataAttributes, function ( rxAttributeMatcher, attributeName ) {
                 var match = rxAttributeMatcher.exec( elDefinitionComment ),
                     attributeValue = match && match[2];
 
@@ -478,17 +506,75 @@
      * When a data attribute is used to store stringified JSON objects, the flag `{ isJSON: true }` must be set in the
      * options. Primitive data attributes (of type string, number, boolean) don't need a flag.
      *
+     * The names "html" and "compiled" are illegal because they are reserved. They are already in use in the cache
+     * object, so there could be a conflict further down the line. Also, a name can only be registered once. And, as
+     * said before, it must not be prefixed with "data-". Violations of these rules cause an error to be thrown.
+     *
+     * Registering a data attribute has the following effects:
+     *
+     * - When a registered data attribute is queried by Backbone.Declarative.Views, the attribute is refreshed from the
+     *   DOM and updated in the jQuery data cache. Changes to the attribute in the DOM are picked up that way. The
+     *   update can also be triggered externally, e.g. by a plugin, with `updateJqueryDataCache()`.
+     *
+     * - A registered data attribute is detected in a raw HTML/template string, provided that it is placed into a
+     *   comment. It must be written as it would appear on a script or template tag, ie in dashed form and including the
+     *   "data-" prefix, just like the standard `el`-defining attributes. Custom attributes and `el`-defining attributes
+     *   must be placed into the same, single comment.
+     *
+     *   The registered attribute is then created on the temporary script tag which is wrapped around the template
+     *   string, along with the `el`-defining data attributes. But unlike these, the custom attribute does not make it
+     *   into the cache (nor does the script tag).
+     *
+     *   However, the script tag can be accessed and examined by a custom loader. For that to happen, the custom loader
+     *   has to invoke the default loader before processing the result further. Custom attributes can be read this way.
+     *
      * @param {string}  name                    as in the data attribute (e.g. "tag-name", not "tagName"), and without "data-" prefix
      * @param {object}  [options]
      * @param {boolean} [options.isJSON=false]
-     * @private
      */
     function _registerDataAttribute ( name, options ) {
-        var type = options && options.isJSON ? "json" : "primitives",
+        var existingNames = _getRegisteredDataAttributeNames(),
+            fullName = "data-" + name,
+            type = options && options.isJSON ? "json" : "primitives",
             names = registeredDataAttributes[type];
 
+        if ( name.indexOf( "data-" ) === 0 ) throw new CustomizationError( 'registerDataAttribute(): Illegal attribute name "' + name + '", must be registered without "data-" prefix' );
+        if ( name === "html" || name === "compiled" ) throw new CustomizationError( 'registerDataAttribute(): Cannot register attribute name "' + name + '" because it is reserved' );
+        if ( _.contains( existingNames, name ) ) throw new CustomizationError( 'registerDataAttribute(): Cannot register attribute name "' + name + '" because it has already been registered' );
+
+        // Add the name to the list of registered data attributes
         names.push( name );
         registeredDataAttributes[type] = _.uniq( names );
+
+        // Create amd store a regex matching the attribute and its value in an HTML/template string, for transfer onto a
+        // wrapper node (see _wrapRawTemplate())
+        rxRegisteredDataAttributes[fullName] = new RegExp( fullName + "\\s*=\\s*(['\"])([\\s\\S]+?)\\1" );
+
+        // Update the regular expression which tests an HTML/template string and detects a comment containing registered
+        // attributes.
+        rxElDefinitionComment = _createElDefinitionCommentRx();
+    }
+
+    /**
+     * Returns the names of all registered attributes. These names are dashed but don't include the "data-" prefix.
+     *
+     * @returns {string[]}
+     */
+    function _getRegisteredDataAttributeNames () {
+        return registeredDataAttributes.primitives.concat( registeredDataAttributes.json );
+    }
+
+    /**
+     * Returns a regular expression which tests an HTML/template string and detects a comment containing at least one
+     * registered attribute. Stops after the first matching comment is found (no /g flag).
+     *
+     * NB When the default el-related attributes are registered, this is the resulting regex:
+     * /<!--(?:(?!-->)[\s\S])*?data-(?:tag-name|class-name|id|attributes)\s*=\s*(['"])[\s\S]+?\1[\s\S]*?-->/
+     *
+     * @returns {RegExp}
+     */
+    function  _createElDefinitionCommentRx () {
+        return new RegExp( "<!--(?:(?!-->)[\\s\\S])*?data-(?:" + _getRegisteredDataAttributeNames().join( "|" ) + ")\\s*=\\s*(['\"])[\\s\\S]+?\\1[\\s\\S]*?-->" );
     }
 
     /**
@@ -737,4 +823,4 @@
      * @property {boolean} invalid     always true
      */
 
-}( Backbone, _ ));
+} ) );
