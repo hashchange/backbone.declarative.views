@@ -9,11 +9,11 @@ requirejs.config( {
         'backbone': 'https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.3.3/backbone',
         'marionette': 'https://cdnjs.cloudflare.com/ajax/libs/backbone.marionette/2.4.7/backbone.marionette',
 
-        'backbone.declarative.views': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/dist/amd/backbone.declarative.views',
+        'backbone.declarative.views': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/3.0.0/dist/backbone.declarative.views',
 
-        'local.base': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/base',
-        'local.views-backbone': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-backbone',
-        'local.views-marionette': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/2.1.0/demo/amd/views-marionette'
+        'local.base': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/3.0.0/demo/amd/base',
+        'local.views-backbone': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/3.0.0/demo/amd/views-backbone',
+        'local.views-marionette': 'https://cdn.rawgit.com/hashchange/backbone.declarative.views/3.0.0/demo/amd/views-marionette'
     },
 
     shim: {
