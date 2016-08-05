@@ -1,4 +1,37 @@
-;( function ( Backbone, _ ) {
+;( function ( root, factory ) {
+    "use strict";
+
+    // UMD for a Backbone plugin.
+    //
+    // - Code lives in the Backbone namespace.
+    // - The module does not export a value.
+    // - The module does not create a global.
+
+    var supportsExports = typeof exports === "object" && exports && !exports.nodeType && typeof module === "object" && module && !module.nodeType;
+
+    // AMD:
+    // - Some AMD build optimizers like r.js check for condition patterns like the AMD check below, so keep it as is.
+    // - Check for `exports` after `define` in case a build optimizer adds an `exports` object.
+    // - The AMD spec requires the dependencies to be an array **literal** of module IDs. Don't use a variable there,
+    //   or optimizers may fail.
+    if ( typeof define === "function" && typeof define.amd === "object" && define.amd ) {
+
+        // AMD module
+        define( [ "underscore", "backbone" ], factory );
+
+    } else if ( supportsExports ) {
+
+        // Node module, CommonJS module
+        factory( require( "underscore" ), require( "backbone" ) );
+
+    } else  {
+
+        // Global (browser or Rhino)
+        factory( _, Backbone );
+
+    }
+
+}( this, function ( _, Backbone ) {
     "use strict";
 
     var originalClearCache,                     // for Marionette only
@@ -785,4 +818,4 @@
      * @property {boolean} invalid     always true
      */
 
-}( Backbone, _ ));
+} ) );

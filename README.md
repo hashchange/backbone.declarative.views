@@ -24,6 +24,8 @@ If you use other components which extend Backbone.View, load these components af
 
 Backbone.Declarative.Views augments the Backbone.View base type, so its functionality is available in every view throughout your code.
 
+When loaded as a module (e.g. AMD, Node), Backbone.Declarative.Views does not export a value. It solely lives in the Backbone namespace.
+
 ### With Marionette
 
 Load backbone.declarative.views.js after [Marionette][].
@@ -42,7 +44,7 @@ requirejs.config( {
 
 ### Download, Bower, npm
 
-The stable version of Backbone.Declarative.Views is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install backbone.declarative.views`. With npm, it is `npm install backbone.declarative.views`.
+The stable version of Backbone.Declarative.Views is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]). If you use Bower, fetch the files with `bower install backbone.declarative.views`. With npm, it is `npm install backbone.declarative.views`.
 
 ## Why use it?
 
@@ -613,8 +615,6 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 
 [dist-dev]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/backbone.declarative.views.js "backbone.declarative.views.js"
 [dist-prod]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/backbone.declarative.views.min.js "backbone.declarative.views.min.js"
-[dist-amd-dev]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/amd/backbone.declarative.views.js "backbone.declarative.views.js, AMD build"
-[dist-amd-prod]: https://raw.github.com/hashchange/backbone.declarative.views/master/dist/amd/backbone.declarative.views.min.js "backbone.declarative.views.min.js, AMD build"
 
 [Backbone.Inline.Template-why]: https://github.com/hashchange/backbone.inline.template#why-use-it "Backbone.Inline.Template: Why use it?"
 [mdn-data-attributes]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-* "MDN – Global HTML attributes: data-*"

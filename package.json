@@ -9,7 +9,7 @@
   },
   "author": "Michael Heim <heim@zeilenwechsel.de> (http://www.zeilenwechsel.de/)",
   "description": "Defining the DOM element of a Backbone view right in the template.",
-  "main": "dist/amd/backbone.declarative.views.js",
+  "main": "dist/backbone.declarative.views.js",
   "keywords": [
     "backbone",
     "views",

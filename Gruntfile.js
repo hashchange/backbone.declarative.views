@@ -26,8 +26,7 @@ module.exports = function (grunt) {
     preprocess: {
       build: {
         files: {
-          'dist/backbone.declarative.views.js': 'src/backbone.declarative.views.js',
-          'dist/amd/backbone.declarative.views.js': 'src/amd.js'
+          'dist/backbone.declarative.views.js': 'src/backbone.declarative.views.js'
         }
       },
       interactive: {
@@ -44,10 +43,6 @@ module.exports = function (grunt) {
       build: {
         src: 'dist/backbone.declarative.views.js',
         dest: 'dist/backbone.declarative.views.js'
-      },
-      amd_banner: {
-        src: 'dist/amd/backbone.declarative.views.js',
-        dest: 'dist/amd/backbone.declarative.views.js'
       }
     },
 
@@ -58,10 +53,6 @@ module.exports = function (grunt) {
           except: ['jQuery', 'Zepto', 'Backbone', '_']
         },
         sourceMap: true
-      },
-      amd: {
-        src : 'dist/amd/backbone.declarative.views.js',
-        dest : 'dist/amd/backbone.declarative.views.min.js'
       },
       core: {
         src: 'dist/backbone.declarative.views.js',
