@@ -2,15 +2,25 @@
 
 [Setup][setup] – [Use case][use-case] – [Core functionality][core] – [Template caching][template-cache] – [Other][other] – [Build and test][build]
 
-With Backbone.Declarative.Views, you can read the markup for the container element of a view directly from its template. Keep the tag name, class name and other attributes of `el` out of Backbone.View Javascript code. ([Read why.][use-case])
+The `el` of a Backbone view is defined by a tag name, class name and other attributes. With Backbone.Declarative.Views, you can keep these properties out of your Javascript code. You no longer have to declare them in your views. Instead, describe the `el` properties right in your templates. ([Read why.][use-case])
 
-That [separation of concerns][use-case] works entirely behind the scenes. Just load Backbone.Declarative.Views into your project, and [start declaring the view attributes][basic-usage] in the HTML of your templates.
+Backbone.Declarative.Views works entirely behind the scenes. Just load it into your project, and [start declaring the `el` attributes][basic-usage] in your templates wherever you wish. Legacy code is not affected, existing templates work exactly as they did before – until you decide to enhance them with the features of Backbone.Declarative.Views.
 
-As a bonus, you get a Javascript API for direct access to the [template cache][template-cache]. The cache is built into Backbone.Declarative.Views to keep it fast and efficient. So why not take advantage of it for your own template processing, too? Creating new views becomes a much speedier affair, and the overall effect on performance can be huge.
+##### Bonus feature: speed
+
+As a bonus, you get a [template cache][template-cache], and a Javascript API for easy access to it. The cache is built into Backbone.Declarative.Views for fast and efficient operation. It makes overwhelming sense to take advantage of it for your own template processing, too. Creating new views becomes a much speedier affair, and the overall effect on performance can be huge.
 
 Users of Marionette benefit from [automatic, integrated management][marionette-cache-integration] of the template caches which Marionette and Backbone.Declarative.Views provide.
 
-Backbone.Declarative.Views [makes use of data attributes][core] for defining the properties of the `el` on a template tag. Should you need to use fully self-contained templates, which contain the `el` of the view inline in their markup, have a look at [Backbone.Inline.Template][]. It is based on Backbone.Declarative.Views, but provides you with a different syntax. (For the advantages of each, and the trade-offs, see [this comparison][Backbone.Inline.Template-why].)
+##### Pseudo competitors: Backbone.Declarative.Views or Backbone.Inline.Template?
+
+For defining the properties of an `el`, Backbone.Declarative.Views [makes use of data attributes][core]. They are set on the template tag. The `el` is not part of the template content itself, not defined by markup inside the template.
+
+For some use cases, tough, you need just that. Fully self-contained templates, which include the `el` of the view inline in their markup, are the distiguishing feature of [Backbone.Inline.Template][].
+
+For the pros and cons of each approach, and the trade-offs involved, see [this comparison][Backbone.Inline.Template-why].
+
+##### Supporting the project
 
 If you are a happy user of this project already, you can support its development by [donating to it][donations]. You absolutely don't have to, of course, but perhaps it is something you [might actually want to do][donations].
 
@@ -77,7 +87,7 @@ Lets begin with an example. Consider the following template snippet.
 </script>
 ```
 
-Now, if your view has a `template: "#my-template"` property, its `el` is set up as 
+Now, if your view has a `template: "#my-template"` property, its `el` is set up as
 
 ```html
 <p id="myContainer" class="someClass orOther"></p>
@@ -117,13 +127,13 @@ When hand-writing JSON, remember to quote property names as well as their values
 
 There are two ways to let a view know about its template:
 
-- You can set the template property of the class with `extend()`: 
+- You can set the template property of the class with `extend()`:
 
   ```javascript
   var View = Backbone.View.extend( { template: "#selector" } );
   ```
 
-- You can also pass the template in as an option when you create the view: 
+- You can also pass the template in as an option when you create the view:
 
   ```javascript
   var view = new View( { template: "#selector" } );
@@ -135,7 +145,7 @@ The `template` option, if provided, is attached to the view directly. It is avai
 
 If you want Backbone.Declarative.Views to pick up the properties of your `el`, and perhaps cache the template for you, you have to play by the rules.
 
-- You can't set the template property to a selector inside `initialize` – that is too late. The `el` has already been set up at this point. Modifications of the template property in `initialize()` will not affect the `el` of the view. 
+- You can't set the template property to a selector inside `initialize` – that is too late. The `el` has already been set up at this point. Modifications of the template property in `initialize()` will not affect the `el` of the view.
 
   This behaviour is a feature, not a bug. It is common to compile a template in `initialize`, along the lines of
 
@@ -168,7 +178,7 @@ Yes, that works as well. The template property of a view can be set to an HTML s
 ```javascript
 var templateHtml = '<!-- data-tag-name="ul" data-class-name="list" -->' +
                    '<li class="bullet" data-tag-name="ul" data-class-name="list">' +
-                   '  template <%= content %> goes here' + 
+                   '  template <%= content %> goes here' +
                    '</li>',
     view = new Backbone.View( { template: templateHtml } );
 
@@ -186,7 +196,7 @@ It makes overwhelming sense to reuse that data and save yourself future look-ups
 
 ### At a glance: How to use the cache
 
-Here is a pretty universal duo of snippets for tapping into the cache of Backbone.Declarative.Views. 
+Here is a pretty universal duo of snippets for tapping into the cache of Backbone.Declarative.Views.
 
 The snippets assume that you compile your templates with the `_.template()` function of Underscore. If you don't, it is pretty easy to see what you need to change.
 
@@ -204,10 +214,10 @@ Backbone.DeclarativeViews.custom.compiler = _.template;
 [Defining a compiler][template-compiler] like that is optional, but gives you a significant speed boost for free. It is best to make a habit of always defining the template compiler.
 
 ```javascript
-// Access the cache in a view. 
+// Access the cache in a view.
 
 // The following lines are safe to use even if you don't define a template for
-// some of your views. They also work if you leave out the snippet above, and 
+// some of your views. They also work if you leave out the snippet above, and
 // don't set a compiler.
 var BaseView = Backbone.View.extend( {
   initialize: function () {
@@ -218,7 +228,7 @@ var BaseView = Backbone.View.extend( {
   }
 } );
 
-// If you always define the template compiler, and your view is guaranteed to 
+// If you always define the template compiler, and your view is guaranteed to
 // have a template, get rid of the cruft and just use
 var BaseView = Backbone.View.extend( {
   initialize: function () {
@@ -227,7 +237,7 @@ var BaseView = Backbone.View.extend( {
 } );
 ```
 
-This little bit of code has got you covered. For the fine print, read on. 
+This little bit of code has got you covered. For the fine print, read on.
 
 ### Reading template data from the cache
 
@@ -243,7 +253,7 @@ In the context of a view, call `declarativeViews.getCachedTemplate()`:
 ```javascript
 initialize: function () {
   var cachedTemplate = this.declarativeViews.getCachedTemplate();
-  // Do stuff with it, most likely with cachedTemplate.html, 
+  // Do stuff with it, most likely with cachedTemplate.html,
   // or perhaps with cachedTemplate.compiled.
 }
 ```
@@ -270,17 +280,17 @@ When you pull data from the cache with `getCachedTemplate()`, you _do not_ get a
   the actual template content if the template has been specified by a selector.
 
   If you don't define your template with a selector, and rather pass in [a raw HTML template string][raw-html-template-string], the `html` property contains that string.
-  
+
 - `compiled` (function, or undefined)
   the compiled template (ie, a function returning the final HTML, with the template vars filled in) if a
   template compiler [has been set][template-compiler] in `Backbone.DeclarativeViews.custom.compiler`. Or undefined, otherwise.
-  
+
 - `tagName` (string or undefined)
   the tag to be used for the `el`, if defined by a data attribute of the template
-  
+
 - `className` (string or undefined)
   the class name of the `el`, if defined by a data attribute
-  
+
 - `attributes` (hash or undefined)
   hash of `el` attributes and their values, if defined by a data attribute
 
@@ -298,14 +308,14 @@ You do get a cache miss in the following cases.
 
 - <a name="cache-miss-no-string"></a>The template you request is not defined by a string.
 
-  You can set the template property of a view to pretty much anything. It could be a function returning what you need. It could, theoretically, be a hash of things. 
+  You can set the template property of a view to pretty much anything. It could be a function returning what you need. It could, theoretically, be a hash of things.
 
   Backbone.Declarative.Views does not handle these kinds of template definitions. It simply leaves them alone. Consequentially, the templates do not make it into the built-in cache.
 
 - <a name="cache-miss-uncacheable-string"></a>You use a [custom template loader][custom-loader] and it can't handle your template string, throwing an error or returning an empty jQuery object as a result. Because the template loader can't handle the template, Backbone.Declarative.Views ignores it.
-  
+
   The default loader of Backbone.Declarative.Views does not produce cache misses of that kind, though. The only string leading to a cache miss is an empty template string. And an empty template string should be considered a misconfiguration anyway.
-  
+
 In these cases, `getCachedTemplate()` returns undefined.
 
 ### Keeping compiled templates in the cache
@@ -337,7 +347,7 @@ cacheEntry.compiled = Backbone.DeclarativeViews.custom.compiler( cacheEntry.html
 
 By default, the template property of your view is assumed to be a selector, or perhaps a [raw HTML string][raw-html-template-string]. For processing, it is handed over to `Backbone.$`, which acts as the default loader and fetches your template from the DOM (or creates a node from the raw HTML string).
 
-If that is not how you want to go about loading your templates, define a custom loader instead. It will take the place of `Backbone.$` when the template is fetched. 
+If that is not how you want to go about loading your templates, define a custom loader instead. It will take the place of `Backbone.$` when the template is fetched.
 
 ```javascript
 Backbone.DeclarativeViews.custom.loadTemplate = function ( templateProperty ) {
@@ -360,9 +370,9 @@ If you need to call attention to a specific type of problem, your loader can rai
 
 ##### Other considerations
 
-Please be aware that your custom loader will only be called if the template of the view [is defined by a string][cache-miss-no-string]. If it is not, Backbone.Declarative.Views bails out well before attempting to load anything. Non-string template properties are [none of its business][cache-miss-no-string]. 
+Please be aware that your custom loader will only be called if the template of the view [is defined by a string][cache-miss-no-string]. If it is not, Backbone.Declarative.Views bails out well before attempting to load anything. Non-string template properties are [none of its business][cache-miss-no-string].
 
-Your custom loader has access to the default loader and can invoke it like this: 
+Your custom loader has access to the default loader and can invoke it like this:
 
 ```javascript
 $template = Backbone.DeclarativeViews.defaults.loadTemplate( templateProperty );
@@ -382,7 +392,7 @@ Backbone.DeclarativeViews.clearCachedTemplate( [ "#template", "#template2" ] );
 ```
 You must use the exact same selectors as when you first used the templates. Selectors which are merely equivalent, e.g. `"script#template"` instead of `"#template"`, don't match the cache entry and leave it in the cache.
 
-Alternatively, you can target the template [associated with a specific view][cache-entry-access], and clear it from there: 
+Alternatively, you can target the template [associated with a specific view][cache-entry-access], and clear it from there:
 
 ```javascript
 someView.declarativeViews.clearCachedTemplate();
@@ -400,7 +410,7 @@ Backbone.DeclarativeViews.clearCache();
 
 There is a lightweight link between the caches of Marionette and Backbone.Declarative.Views. If you clear an item from one cache, it gets cleared from the other as well. You can call the cache-clearing methods [of Marionette][Marionette.TemplateCache.clear] and Backbone.Declarative.Views interchangeably.
 
-And that, surprisingly, is where it ends. You might have expected deeper integration, like an actual joint cache, which would have saved memory and reduced DOM access even further. 
+And that, surprisingly, is where it ends. You might have expected deeper integration, like an actual joint cache, which would have saved memory and reduced DOM access even further.
 
 Indeed, that joint cache has [existed briefly][src-obsolete-marionette-loader-integration]. But it turned out that the costs outweighed the benefits. The performance gain was minimal at best, sometimes not even offsetting the additional overhead of integration. And crucially, it didn't work that well with some Marionette customizations. [Custom template loaders in Marionette][Marionette.TemplateCache.loadTemplate] had been trickier to use. In the end, full cache integration had been more trouble than it is worth, and has been removed.
 
@@ -422,7 +432,7 @@ Equally, you can omit the `template` property, or assign a value to it which is 
 
 An example of such a view is the [Marionette.CollectionView][] type. Its content is entirely made up of iterated child views. Its own markup consists of nothing more than the containing `el`.
 
-And yes, that `el` can be defined with a template. You don't have to put the `el` properties back into Javascript code. 
+And yes, that `el` can be defined with a template. You don't have to put the `el` properties back into Javascript code.
 
 For such a view, only the data attributes matter in the template. The content inside the template tag will simply be ignored.
 
@@ -465,7 +475,7 @@ If you'd like to fix, customize or otherwise improve the project: here are your 
 
 ### Setup
 
-[npm][] and [Bower][] set up the environment for you. 
+[npm][] and [Bower][] set up the environment for you.
 
 - The only thing you've got to have on your machine is [Node.js]. Download the installer [here][Node.js].
 - Open a command prompt in the project directory.
@@ -519,11 +529,17 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ### v3.0.0
 
+###### Changes
+
+- Removed the separate AMD/Node builds in `dist/amd`. Module systems and browser globals are now supported by the same file, `dist/backbone.declarative.views.js` (or `.min.js`)
 - Made the `.html` property of a cache entry [return the full HTML][cache-entry] of a raw template string (previously: the inner HTML only)
 - Made all raw template strings cacheable, including those with text at the top level, outside of a tag
 - Removed the `outerHtml()` method from cache entries
 - In raw template strings, `el` attributes are [defined inside a comment][raw-html-template-string] (previously: with attributes on the first top-level tag)
 - Invalid template selectors are [treated as template strings][cache-misses], no longer cause a cache miss
+
+###### Fixes
+
 - Fixed parsing errors, caused by invalid HTML or unusual template directives, when caching raw template strings
 
 ### v2.2.1
