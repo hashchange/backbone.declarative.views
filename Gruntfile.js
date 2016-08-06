@@ -38,7 +38,16 @@ module.exports = function (grunt) {
 
     concat: {
       options: {
-        banner: "<%= meta.banner %>"
+        banner: "<%= meta.banner %>",
+        process: function( src, filepath ) {
+          var bowerVersion = grunt.file.readJSON( "bower.json" ).version,
+              npmVersion = grunt.file.readJSON( "package.json" ).version;
+
+          if ( npmVersion === undefined || npmVersion === "" ) grunt.fail.fatal( "Version number not specified in package.json. Specify it in bower.json and package.json" );
+          if ( npmVersion !== bowerVersion ) grunt.fail.fatal( "Version numbers in package.json and bower.json are not identical. Make them match." + " " + npmVersion );
+          if ( ! /^\d+\.\d+.\d+$/.test( npmVersion ) ) grunt.fail.fatal( 'Version numbers in package.json and bower.json are not semantic. Provide a version number in the format n.n.n, e.g "1.2.3"' );
+          return src.replace( "__COMPONENT_VERSION_PLACEHOLDER__", npmVersion );
+        }
       },
       build: {
         src: 'dist/backbone.declarative.views.js',

@@ -128,7 +128,9 @@
             loadTemplate: undefined,
             /** @type {Function|undefined} */
             compiler: undefined
-        }
+        },
+
+        version: "__COMPONENT_VERSION_PLACEHOLDER__"
     };
 
     //
