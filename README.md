@@ -34,7 +34,7 @@ If you use other components which extend Backbone.View, load these components af
 
 Backbone.Declarative.Views augments the Backbone.View base type, so its functionality is available in every view throughout your code.
 
-When loaded as a module (e.g. AMD, Node), Backbone.Declarative.Views does not export a value. It solely lives in the Backbone namespace.
+When loaded as a module (e.g. AMD, Node), Backbone.Declarative.Views does not export a meaningful value. It solely lives in the Backbone namespace.
 
 ### With Marionette
 
