@@ -9,7 +9,7 @@
     // UMD for a Backbone plugin. Supports AMD, Node.js, CommonJS and globals.
     //
     // - Code lives in the Backbone namespace.
-    // - The module does not export a value.
+    // - The module does not export a meaningful value.
     // - The module does not create a global.
 
     var supportsExports = typeof exports === "object" && exports && !exports.nodeType && typeof module === "object" && module && !module.nodeType;
@@ -22,21 +22,21 @@
     if ( typeof define === "function" && typeof define.amd === "object" && define.amd ) {
 
         // AMD module
-        define( [ "underscore", "backbone" ], factory );
+        define( [ "exports", "underscore", "backbone" ], factory );
 
     } else if ( supportsExports ) {
 
         // Node module, CommonJS module
-        factory( require( "underscore" ), require( "backbone" ) );
+        factory( exports, require( "underscore" ), require( "backbone" ) );
 
     } else  {
 
         // Global (browser or Rhino)
-        factory( _, Backbone );
+        factory( {}, _, Backbone );
 
     }
 
-}( this, function ( _, Backbone ) {
+}( this, function ( exports, _, Backbone ) {
     "use strict";
 
     var originalClearCache,                     // for Marionette only
@@ -133,7 +133,9 @@
             loadTemplate: undefined,
             /** @type {Function|undefined} */
             compiler: undefined
-        }
+        },
+
+        version: "2.2.1"
     };
 
     //
@@ -796,6 +798,14 @@
 
         return CustomError;
     }
+
+
+    // Module return value
+    // -------------------
+    //
+    // A return value may be necessary for AMD to detect that the module is loaded. It ony exists for that reason and is
+    // purely symbolic. Don't use it in client code. The functionality of this module lives in the Backbone namespace.
+    exports.info = "Backbone.Declarative.Views has loaded. Don't use the exported value of the module. Its functionality is available inside the Backbone namespace.";
 
 
     //
