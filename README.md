@@ -304,13 +304,15 @@ For that reason, even invalid or mistyped selectors do not cause a cache miss â€
 
 Of course, the validity of the selector only matters on first access. If the DOM node is deleted after its content is already in the cache, you get the cached template back.
 
-You do get a cache miss in the following cases.
+You do get a cache miss in the following cases:
 
 - <a name="cache-miss-no-string"></a>The template you request is not defined by a string.
 
   You can set the template property of a view to pretty much anything. It could be a function returning what you need. It could, theoretically, be a hash of things.
 
   Backbone.Declarative.Views does not handle these kinds of template definitions. It simply leaves them alone. Consequentially, the templates do not make it into the built-in cache.
+
+- <a name="cache-miss-empty-string"></a>You set the template to an empty string.
 
 - <a name="cache-miss-uncacheable-string"></a>You use a [custom template loader][custom-loader] and it can't handle your template string, throwing an error or returning an empty jQuery object as a result. Because the template loader can't handle the template, Backbone.Declarative.Views ignores it.
 
@@ -537,6 +539,7 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 - Removed the `outerHtml()` method from cache entries
 - In raw template strings, `el` attributes are [defined inside a comment][raw-html-template-string] (previously: with attributes on the first top-level tag)
 - Invalid template selectors are [treated as template strings][cache-misses], no longer cause a cache miss
+- Version is exposed in `Backbone.DeclarativeViews.version`
 
 ###### Fixes
 
