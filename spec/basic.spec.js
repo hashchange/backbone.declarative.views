@@ -14,7 +14,7 @@
                 "data-tag-name": "section",
                 "data-class-name": "dataClass",
                 "data-id": "dataId",
-                "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
+                "data-attributes": '{ "lang": "en", "title": "title from data attributes", "contenteditable": "" }'
             };
 
             // Equivalent of the data attributes as a hash of el properties. Written out for clarity, but could simply
@@ -23,7 +23,7 @@
                 tagName: "section",
                 className: "dataClass",
                 id: "dataId",
-                attributes: { lang: "en", title: "title from data attributes" }
+                attributes: { lang: "en", title: "title from data attributes", contenteditable: "" }
             };
 
             $templateNode = $( baseTemplateHtml ).appendTo( "body" );
@@ -80,6 +80,7 @@
                         var attributes = JSON.parse( dataAttributes["data-attributes"] );
                         expect( view.$el.attr( "lang" ) ).to.equal( attributes.lang );
                         expect( view.$el.attr( "title" ) ).to.equal( attributes.title );
+                        expect( view.$el.attr( "contenteditable" ) ).to.equal( attributes.contenteditable );
                     } );
 
                     it( 'other, arbitrary data attributes do not get transformed into el attributes', function () {
@@ -102,7 +103,7 @@
                             "data-tag-name": "ul",
                             "data-class-name": "listClass",
                             "data-id": "listId",
-                            "data-attributes": '{ "lang": "en", "title": "title from data attributes" }',
+                            "data-attributes": '{ "lang": "en", "title": "title from data attributes", "contenteditable": "" }',
                             "data-foo": "bar"
                         };
 
@@ -136,6 +137,7 @@
                             var attributes = JSON.parse( dataAttributes["data-attributes"] );
                             expect( view.$el.attr( "lang" ) ).to.equal( attributes.lang );
                             expect( view.$el.attr( "title" ) ).to.equal( attributes.title );
+                            expect( view.$el.attr( "contenteditable" ) ).to.equal( attributes.contenteditable );
                         } );
 
                         it( 'other, arbitrary data attributes do not get transformed into el attributes', function () {
@@ -185,6 +187,7 @@
                                 var attributes = JSON.parse( dataAttributes["data-attributes"] );
                                 expect( view.$el.attr( "lang" ) ).to.equal( attributes.lang );
                                 expect( view.$el.attr( "title" ) ).to.equal( attributes.title );
+                                expect( view.$el.attr( "contenteditable" ) ).to.equal( attributes.contenteditable );
                             } );
 
                             it( 'other, arbitrary data attributes do not get transformed into el attributes', function () {

@@ -93,7 +93,7 @@
                 "data-tag-name": "section",
                 "data-class-name": "dataClass",
                 "data-id": "dataId",
-                "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
+                "data-attributes": '{ "lang": "en", "title": "title from data attributes", "contenteditable": "" }'
             };
 
             // Equivalent of the data attributes as a hash of el properties. Written out for clarity, but could simply
@@ -102,7 +102,7 @@
                 tagName: "section",
                 className: "dataClass",
                 id: "dataId",
-                attributes: { lang: "en", title: "title from data attributes" }
+                attributes: { lang: "en", title: "title from data attributes", contenteditable: "" }
             };
 
             undefinedProperties = {
@@ -553,7 +553,7 @@
                         "data-tag-name": undefined,
                         "data-class-name": undefined,
                         "data-id": "modifiedId",
-                        "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
+                        "data-attributes": '{ "lang": "en", "title": "title from data attributes", "contenteditable": "" }'
                     };
 
                 $templateNode
