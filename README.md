@@ -463,6 +463,10 @@ So to be on the safe side, load your view-related components [after Backbone.Dec
 
 Incidentally, [Marionette][] is not affected by that edge case. You can load Marionette before Backbone.Declarative.Views, and in fact [you should][setup-marionette].
 
+### The template property is set to a selector, but the selector string itself is returned as the template content. Why?
+
+The selector doesn't match a DOM element, and hence is [interpreted as a template literal][cache-misses]. Fix your selector to make it work.
+
 ### Why data attributes?
 
 On the face of it, using data attributes on one tag to describe another tag seems nonstandard and indirect. You may wonder why the markup for the `el` of a view can't just be part of the HTML inside the template, as an enclosing tag perhaps.
