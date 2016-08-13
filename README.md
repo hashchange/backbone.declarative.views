@@ -45,9 +45,7 @@ If you use AMD, please be aware that Marionette is not declared as a dependency 
 ```javascript
 requirejs.config( {
     shim: {
-        'backbone.declarative.views': {
-            deps: ['marionette']
-        }
+        'backbone.declarative.views': ['marionette']
     }
 } );
 ```
