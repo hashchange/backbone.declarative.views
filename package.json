@@ -8,7 +8,7 @@
     "url": "https://github.com/hashchange/backbone.declarative.views.git"
   },
   "author": "Michael Heim <heim@zeilenwechsel.de> (http://www.zeilenwechsel.de/)",
-  "description": "Defining the DOM element of a Backbone view right in the template.",
+  "description": "Defining the DOM element of a Backbone view right in the template. Compatible with absolutely everything.",
   "main": "dist/backbone.declarative.views.js",
   "keywords": [
     "backbone",
