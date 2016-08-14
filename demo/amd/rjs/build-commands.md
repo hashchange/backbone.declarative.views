@@ -1,10 +1,8 @@
 # Generating r.js builds
 
-## Generating builds for JS Bin demos
+## Split builds with two build files, for JS Bin demos
 
-### Two build files
-
-The demo HTML files reference two concatenated build files:
+The demo HTML files for JS Bin reference two concatenated build files:
 
 - `vendor.js` for the third-party dependencies. It includes Backbone.Declarative.Views and a local wrapper model (`backbone.declarative.views.marionette`) which is needed to set up a Marionette dependency for it.
 - `backbone-app.js` and `marionette-app.js` for the demo code, consisting of local modules (except for the Backbone.Declarative.Views wrapper).
@@ -22,20 +20,23 @@ Open a command prompt in the **project root** directory.
 ```
 # For vendor.js:
 
-node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/vendor-config.js
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/vendor-config.js
 
-# For *-app.js
+# For backbone-app.js:
 
-node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/backbone-app-config.js
-node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/marionette-app-config.js
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/backbone-app-config.js
+
+# For marionette-app.js:
+
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/marionette-app-config.js
 ```
 
 ### Output files
 
-The output is written to the `demo/amd/jsbin` directory.
+The output is written to the directory `demo/amd/rjs/output/parts`.
 
 
-## Generating builds for local demos
+## Single-file builds, for local demos
 
 Builds for local demos are created to test that the setup continues to work after optimization with r.js. All modules of a demo end up in a single file. For easier examination, the file is not minified.
 
@@ -48,13 +49,13 @@ For building the output file, open a command prompt in the **project root** dire
 ```
 # For the vanilla JS demo:
 
-node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/local/plain-build-config.js
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/unified/plain-build-config.js
 
 # For the Marionette demo:
 
-node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/local/marionette-build-config.js
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/unified/marionette-build-config.js
 ```
 
 ### Output files
 
-The output is written to the `demo/amd/rjs/output-local` directory.
+The output is written to the directory `demo/amd/rjs/output/unified`.

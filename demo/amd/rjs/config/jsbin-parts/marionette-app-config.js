@@ -10,5 +10,5 @@
         "marionette",
         "backbone.declarative.views"
     ],
-    out: "../../../jsbin/marionette-app.js"
+    out: "../../output/parts/marionette-app.js"
 })

@@ -10,5 +10,5 @@
         "local.views-backbone",
         "local.views-marionette"
     ],
-    out: "../../../jsbin/vendor.js"
+    out: "../../output/parts/vendor.js"
 })
