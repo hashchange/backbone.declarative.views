@@ -1,10 +1,4 @@
-requirejs.config( {
-
-    shim: {
-        'backbone.declarative.views': ['marionette']
-    }
-
-} );
+// views-marionette.js
 
 define( [
 

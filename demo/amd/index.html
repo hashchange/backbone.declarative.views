@@ -55,11 +55,23 @@
     
     <!-- libraries --><!-- edit and replace with your project libraries as needed -->
     <script src="../bower_demo_components/requirejs/require.js"></script>
+
+    <!-- Runtime async script loading -->
     <script src="require-config.js"></script>
     <script>
-        // Relative to the baseUrl defined in require-config.js
-        require( ['../demo/amd/plain'] );
+        // Main file; path is relative to the baseUrl defined in require-config.js, set to project root
+        require( ['demo/amd/plain'] );
     </script>
 
+    <!--
+        For testing the output of r.js:
+
+        - Open command prompt in the demo/amd directory
+        - Generate optimized (non-minified) plain-build.js with this command:
+          node ../../node_modules/requirejs/bin/r.js -o mainConfigFile=require-config.js optimize=none name=local.plain out=plain-build.js
+        - Comment out the runtime async script loading, above
+        - Uncomment the script tag below
+    -->
+    <!--<script src="plain-build.js"></script>-->
 </body>
 </html>
