@@ -2,16 +2,16 @@
 
 ## Split builds with two build files, for JS Bin demos
 
-The demo HTML files for JS Bin reference two concatenated build files:
+The demo HTML files for JS Bin reference two concatenated build files (per page):
 
-- `vendor.js` for the third-party dependencies. It includes Backbone.Declarative.Views and a local wrapper model (`backbone.declarative.views.marionette`) which is needed to set up a Marionette dependency for it.
-- `backbone-app.js` and `marionette-app.js` for the demo code, consisting of local modules (except for the Backbone.Declarative.Views wrapper).
+- `vendor.js` for the third-party dependencies. It includes Backbone.Declarative.Views.
+- `backbone-app.js` and `marionette-app.js` for the demo code, consisting of local modules.
 
 The code is not rolled up into a single file because that file would be massive, making it unnecessarily difficult to examine the demo code. The purpose of the demo is to see how Backbone.Declarative.Views is used, so it makes sense to keep the client code separate.
 
 ### Adjustments
 
-Care must be taken to avoid duplication. A module pulled into `vendor.js` must not be part of `*-app.js`, and vice versa. Update the module exclusions **all** build config files when new modules are added to a demo.
+Care must be taken to avoid duplication. A module pulled into `vendor.js` must not be part of `*-app.js`, and vice versa. Update the module exclusions in **all** build config files when new modules are added to a demo.
 
 ### r.js calls
 

@@ -490,6 +490,12 @@ Your test and build environment is ready now. If you want to test against specif
 
 ### Running tests, creating a new build
 
+#### Considerations for testing
+
+To run the tests on remote clients (e.g. mobile devices), start a web server with `grunt interactive` and visit `http://[your-host-ip]:9400/web-mocha/` with the client browser. Running the tests in a browser like this is slow, so it might make sense to disable the power-save/sleep/auto-lock timeout on mobile devices. Use `grunt test` (see below) for faster local testing.
+
+#### Tool chain and commands
+
 The test tool chain: [Grunt][] (task runner), [Karma][] (test runner), [Mocha][] (test framework), [Chai][] (assertion library), [Sinon][] (mocking framework). The good news: you don't need to worry about any of this.
 
 A handful of commands manage everything for you:
@@ -530,6 +536,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 [![Donate with Paypal][donations-paypal-button]][donations-paypal-link]
 
 ## Release Notes
+
+### v3.0.1
+
+- Simplified AMD shim for using Marionette
 
 ### v3.0.0
 
