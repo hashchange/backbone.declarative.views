@@ -66,12 +66,10 @@
     <!--
         For testing the output of r.js:
 
-        - Open command prompt in the demo/amd directory
-        - Generate optimized (non-minified) plain-build.js with this command:
-          node ../../node_modules/requirejs/bin/r.js -o mainConfigFile=require-config.js optimize=none name=local.plain out=plain-build.js
+        - Generate an optimized r.js build (plain-build.js). See info in rjs/build-commands.md
         - Comment out the runtime async script loading, above
         - Uncomment the script tag below
     -->
-    <!--<script src="plain-build.js"></script>-->
+    <!--<script src="rjs/output-local/plain-build.js"></script>-->
 </body>
 </html>
