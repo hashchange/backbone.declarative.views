@@ -7,7 +7,7 @@
 The demo HTML files reference two concatenated build files:
 
 - `vendor.js` for the third-party dependencies. It includes Backbone.Declarative.Views and a local wrapper model (`backbone.declarative.views.marionette`) which is needed to set up a Marionette dependency for it.
-- `plain-app.js` and `marionette-app.js` for the demo code, consisting of local modules (except for the Backbone.Declarative.Views wrapper).
+- `backbone-app.js` and `marionette-app.js` for the demo code, consisting of local modules (except for the Backbone.Declarative.Views wrapper).
 
 The code is not rolled up into a single file because that file would be massive, making it unnecessarily difficult to examine the demo code. The purpose of the demo is to see how Backbone.Declarative.Views is used, so it makes sense to keep the client code separate.
 
@@ -26,7 +26,7 @@ node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/vendor-config.
 
 # For *-app.js
 
-node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/plain-app-config.js
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/backbone-app-config.js
 node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin/marionette-app-config.js
 ```
 
