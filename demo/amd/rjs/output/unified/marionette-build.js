@@ -18986,7 +18986,7 @@ return jQuery;
   return Marionette;
 }));
 
-// Backbone.Declarative.Views, v3.0.0
+// Backbone.Declarative.Views, v3.0.1
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -19123,7 +19123,7 @@ return jQuery;
             compiler: undefined
         },
 
-        version: "3.0.0"
+        version: "3.0.1"
     };
 
     //
