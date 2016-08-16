@@ -14,10 +14,63 @@ module.exports = function (grunt) {
         'dist/**/*'
       ],
       WATCHED_FILES_DEMO = [
-        'demo/**/*',
+        'demo/**/*'
       ],
 
-      SINON_SOURCE_DIR = 'node_modules/karma-chai-plugins/node_modules/sinon/lib/sinon/';
+      SINON_SOURCE_DIR = 'node_modules/karma-chai-plugins/node_modules/sinon/lib/sinon/',
+
+      path = require( "path" ),
+      requireFromString = require( "require-from-string" ),
+
+      /**
+       * Receives an object and the name of a path property on that object. Translates the path property to a new path,
+       * based on a directory prefix. Does not return anything, modifies the object itself.
+       *
+       * The directory prefix can be relative (e.g. "../../"). It may or may not end in a slash.
+       *
+       * @param {string}  dirPrefix
+       * @param {Object}  object
+       * @param {string}  propertyName
+       * @param {boolean} [verbose=false]
+       */
+      translatePathProperty = function ( dirPrefix, object, propertyName, verbose ) {
+        var originalPath = object[propertyName];
+
+        if ( originalPath ) {
+          object[propertyName] = path.normalize( dirPrefix + path.sep + originalPath );
+          if ( verbose ) grunt.log.writeln( 'Translating path property "' + propertyName + '": ' + originalPath + " => " + object[propertyName] );
+        }
+      },
+
+      /**
+       * Reads an r.js build profile and returns it as an options set for a grunt-contrib-requirejs task.
+       *
+       * For a discussion, see https://github.com/gruntjs/grunt-contrib-requirejs/issues/13
+       *
+       * Paths in the build profile are relative to the profile location. In the returned options object, they are
+       * transformed to be relative to the Gruntfile. (The list is nowhere near complete. More properties need to be
+       * transformed as build profiles become more complex.)
+       *
+       * @param   {string}  profilePath      relative to the Gruntfile
+       * @param   {boolean} [verbose=false]
+       * @returns {Object}
+       */
+      getRequirejsBuildProfile = function ( profilePath, verbose ) {
+        var profileContent = grunt.file.read( profilePath ),
+            profile = requireFromString( "module.exports = " + profileContent ),
+
+            dirPrefix = path.dirname( profilePath );
+
+        if ( verbose ) grunt.log.writeln( "Loading r.js build profile " + profilePath );
+
+        // Add more paths here as needed.
+        translatePathProperty( dirPrefix, profile, "mainConfigFile", verbose );
+        translatePathProperty( dirPrefix, profile, "out", verbose );
+
+        if ( verbose ) grunt.log.writeln();
+
+        return profile;
+      };
 
   // Project configuration.
   grunt.config.init({
@@ -163,6 +216,24 @@ module.exports = function (grunt) {
       }
     },
 
+    requirejs : {
+      unifiedPlainBuild : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/unified/plain-build-config.js', false )
+      },
+      unifiedMarionetteBuild : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/unified/marionette-build-config.js', false )
+      },
+      splitBuildVendor : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/vendor-config.js', false )
+      },
+      splitBuildBackboneApp : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/backbone-app-config.js', false )
+      },
+      splitBuildMarionetteApp : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/marionette-app-config.js', false )
+      }
+    },
+
     // Use focus to run Grunt watch with a hand-picked set of simultaneous watch targets.
     focus: {
       demo: {
@@ -274,6 +345,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-sails-linker');
   grunt.loadNpmTasks('grunt-text-replace');
+  grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-focus');
 
   grunt.registerTask('lint', ['jshint:components']);
@@ -282,7 +354,7 @@ module.exports = function (grunt) {
   grunt.registerTask('webtest', ['preprocess:interactive', 'sails-linker:interactive_sinon', 'sails-linker:interactive_spec', 'connect:testNoReload']);
   grunt.registerTask('interactive', ['preprocess:interactive', 'sails-linker:interactive_sinon', 'sails-linker:interactive_spec', 'connect:test', 'watch:livereloadTest']);
   grunt.registerTask('demo', ['connect:demo', 'focus:demo']);
-  grunt.registerTask('build', ['jshint:components', 'karma:build', 'preprocess:build', 'concat', 'uglify', 'jshint:concatenated']);
+  grunt.registerTask('build', ['jshint:components', 'karma:build', 'preprocess:build', 'concat', 'uglify', 'jshint:concatenated', 'requirejs']);
   grunt.registerTask('ci', ['build', 'watch:build']);
   grunt.registerTask('setver', ['replace:version']);
   grunt.registerTask('getver', function () {
@@ -294,6 +366,8 @@ module.exports = function (grunt) {
 
   // Special tasks, not mentioned in Readme documentation:
   //
+  // - requirejs:
+  //   creates build files for the AMD demo with r.js
   // - build-dirty:
   //   builds the project without running checks (no linter, no tests)
   // - ci-dirty:
@@ -303,7 +377,7 @@ module.exports = function (grunt) {
   // - demo-ci-dirty:
   //   Runs the demo (= "demo" task), and also rebuilds the project "dirty", without tests or linter, on every source
   //   change (= "ci-dirty" task)
-  grunt.registerTask('build-dirty', ['preprocess:build', 'concat', 'uglify']);
+  grunt.registerTask('build-dirty', ['preprocess:build', 'concat', 'uglify', 'requirejs']);
   grunt.registerTask('ci-dirty', ['build-dirty', 'watch:buildDirty']);
   grunt.registerTask('demo-ci', ['build', 'connect:demo', 'focus:demoCi']);
   grunt.registerTask('demo-ci-dirty', ['build-dirty', 'connect:demo', 'focus:demoCiDirty']);

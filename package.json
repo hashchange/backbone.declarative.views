@@ -38,6 +38,7 @@
     "grunt-contrib-concat": "~1.0.1",
     "grunt-contrib-connect": "~1.0.2",
     "grunt-contrib-jshint": "~1.0.0",
+    "grunt-contrib-requirejs": "^1.0.0",
     "grunt-contrib-uglify": "~2.0.0",
     "grunt-contrib-watch": "~1.0.0",
     "grunt-focus": "~1.0.0",
@@ -63,6 +64,7 @@
     "matchdep": "~1.0.1",
     "mocha": "~3.0.2",
     "phantomjs-prebuilt": "^2.1.12",
+    "require-from-string": "^1.2.0",
     "requirejs": "^2.2.0"
   }
 }

@@ -1,5 +1,16 @@
 # Generating r.js builds
 
+## Using a Grunt task
+
+Instead of individual r.js calls, the following command will create all builds:
+
+```
+grunt requirejs
+```
+
+The grunt task simply reads the build profiles described below, and feeds them to r.js.
+
+
 ## Split builds with two build files, for JS Bin demos
 
 The demo HTML files for JS Bin reference two concatenated build files (per page):

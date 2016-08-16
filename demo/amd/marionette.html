@@ -59,14 +59,18 @@
     <!-- Runtime async script loading -->
     <script src="require-config.js"></script>
     <script>
-        // Main file; path is relative to the baseUrl defined in require-config.js, set to project root
-        require( ['demo/amd/marionette'] );
+        // Main file, set to the name of the main module. The name is defined in the paths config, in require-config.js.
+        // If a path were used here, it would be relative to the baseUrl defined in require-config.js (which is set to
+        // project root):
+        // require( ['demo/amd/marionette'] );
+        require( ['local.marionette'] );
     </script>
 
     <!--
         For testing the output of r.js:
 
-        - Generate an optimized r.js build (marionette-build.js). See info in rjs/build-commands.md
+        - Generate an optimized r.js build (marionette-build.js) with `grunt requirejs`. For more info, see
+          rjs/build-commands.md
         - Comment out the runtime async script loading, above
         - Uncomment the script tag below
     -->
