@@ -537,6 +537,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v3.1.0
+
+- Added `Backbone.DeclarativeViews.plugins.enforceTemplateLoading` method for use by plugins
+
 ### v3.0.1
 
 - Simplified AMD shim for using Marionette

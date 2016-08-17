@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v3.0.1
+// Backbone.Declarative.Views, v3.1.0
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -43,6 +43,8 @@
         originalConstructor = Backbone.View,
         templateCache = {},
         instanceCacheAliases = [],
+
+        enforceTemplateLoading = false,
 
         registeredDataAttributes = {
             primitives: [],
@@ -102,6 +104,8 @@
                 this[alias] = this.declarativeViews;
             }, this );
 
+            if ( enforceTemplateLoading ) getViewTemplateData( this );
+
             originalConstructor.apply( this, arguments );
         }
 
@@ -121,7 +125,8 @@
             registerDataAttribute: _registerDataAttribute,
             getDataAttributes: _getDataAttributes,
             updateJqueryDataCache: _updateJQueryDataCache,
-            registerCacheAlias: _registerCacheAlias
+            registerCacheAlias: _registerCacheAlias,
+            enforceTemplateLoading: _enforceTemplateLoading
         },
 
         defaults: {
@@ -135,7 +140,7 @@
             compiler: undefined
         },
 
-        version: "3.0.1"
+        version: "3.1.0"
     };
 
     //
@@ -175,13 +180,8 @@
     }
 
     /**
-     * Returns the template data associated with a given view, provided that the template has been passed as a string
-     * and is cacheable. Otherwise, it returns undefined. Manages caching behind the scenes.
-     *
-     * To be cacheable, the template property or option must be
-     *
-     * - a selector for the template element (and the element must actually exist)
-     * - a raw HTML string which can be turned into a template element
+     * Returns the template data associated with a given view, provided that the template is set to a non-empty string.
+     * Otherwise, it returns undefined. Manages caching behind the scenes.
      *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
@@ -693,6 +693,21 @@
             instanceCacheAliases.push( instanceCachePropertyName );
             instanceCacheAliases = _.unique( instanceCacheAliases );
         }
+    }
+
+    /**
+     * Sets a flag to enforce template loading when a view is instantiated. Intended for use by plugins.
+     *
+     * When all `el` properties (`tagName`, `className`, ...) are overridden by properties set in a view, there normally
+     * is no need to examine the template, and the loader is not called. (It will be called as soon as the data is
+     * needed, ie when the template cache is queried; that is early enough.)
+     *
+     * However, if the loader does not just fetch the template but also transforms the template element, that
+     * transformation would not happen if all `el` properties are overridden. Calling _enforceTemplateLoading() and
+     * setting the flag makes sure that the loader is called, even in that case.
+     */
+    function _enforceTemplateLoading () {
+        enforceTemplateLoading = true;
     }
 
     /**
