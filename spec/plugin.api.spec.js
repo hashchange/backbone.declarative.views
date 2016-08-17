@@ -624,6 +624,17 @@
 
             } );
 
+            // Spec: Enforcing template loading with enforceTemplateLoading()
+            //
+            // Currently, this test is not implemented. Calling enforceTemplateLoading() is irreversible, it can't be
+            // turned off again. It would affect all subsequent tests - too strong an effect to be worth it.
+            //
+            // If the tests were implemented, this is what they would cover:
+            //
+            // - Define **all** el props in a Backbone view - this would prevent the loader from being called, normally,
+            //   if enforceTemplateLoading() were not invoked. But it is, so set up a spy checking if the loader has
+            //   indeed been called. For a spy, simply create a custom loader.
+            // - Check that nothing breaks when the template property is set to a function, an empty string etc.
         } );
         
     } );
