@@ -158,16 +158,17 @@
      *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
-     * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
+     * @param   {string}        templateProp  template selector, or raw template HTML, identifying the cache entry
+     * @param   {Backbone.View} [view]        the view which requested the template
      * @returns {CachedTemplateData|undefined}
      */
-    function getTemplateData ( templateProp ) {
+    function getTemplateData ( templateProp, view ) {
         var data;
 
         if ( templateProp && _.isString( templateProp ) ) {
 
             data = templateCache[ templateProp ];
-            if ( ! data ) data = _createTemplateCache( templateProp );
+            if ( ! data ) data = _createTemplateCache( templateProp, view );
 
             if ( data.invalid ) data = undefined;
 
@@ -193,7 +194,7 @@
 
             if ( view.template && _.isString( view.template ) ) {
 
-                data = getTemplateData( view.template );
+                data = getTemplateData( view.template, view );
 
                 meta.processed = true;
                 meta.inGlobalCache = true;
@@ -209,7 +210,7 @@
             }
 
         } else {
-            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp ) : undefined;
+            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp, view ) : undefined;
         }
 
         return data;
@@ -406,10 +407,11 @@
      *
      * Uses a custom loader if specified, instead of loading the template with jQuery (default).
      *
-     * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
+     * @param   {string}        templateProp  template selector, or raw template HTML, identifying the cache entry
+     * @param   {Backbone.View} [view]        the view which requested the template
      * @returns {CachedTemplateData|Uncacheable}
      */
-    function _createTemplateCache( templateProp ) {
+    function _createTemplateCache( templateProp, view ) {
         var $template, data, html,
 
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
@@ -419,7 +421,7 @@
             cacheId = templateProp;
 
         try {
-            $template = customLoader ? customLoader( templateProp ) : defaultLoader( templateProp );
+            $template = customLoader ? customLoader( templateProp, view ) : defaultLoader( templateProp, view );
         } catch ( err ) {
             // Rethrow and exit if the alarm has been raised deliberately, using an error type of Backbone.DeclarativeViews.
             if( _isDeclarativeViewsErrorType( err ) ) throw err;

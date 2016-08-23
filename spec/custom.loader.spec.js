@@ -41,7 +41,9 @@
             Backbone.DeclarativeViews.custom.loadTemplate = undefined;
         } );
 
-        describe( 'The custom loadTemplate method receives as argument', function () {
+        describe( 'Arguments provided to the custom loadTemplate method', function () {
+
+            var view;
 
             beforeEach( function () {
                 sinon.spy( Backbone.DeclarativeViews.custom, "loadTemplate" );
@@ -51,21 +53,95 @@
                 Backbone.DeclarativeViews.custom.loadTemplate.restore();
             } );
 
-            it( 'the template property of the view, if the template has been specified that way', function () {
-                View = Backbone.View.extend( { template: "#template" } );
-                new View();
-                expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template" );
+            describe( 'When the custom loader is called in the context of a view', function () {
+
+                describe( 'with the template being set as a property on the view class', function () {
+
+                    beforeEach( function () {
+                        View = Backbone.View.extend( { template: "#template" } );
+                        view = new View();
+                    } );
+
+                    it( 'it receives the template property of the view as first argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template" );
+                    } );
+
+                    it( 'it receives the view as second argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", view );
+                    } );
+
+                } );
+
+                describe( 'with the template being passed in as an option during view instantiation', function () {
+
+                    beforeEach( function () {
+                        view = new View( { template: "#template" } );
+                    } );
+
+                    it( 'it receives the template option passed to the view as first argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template" );
+                    } );
+
+                    it( 'it receives the view as second argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", view );
+                    } );
+
+                } );
+                
+                describe( 'with a template being set as a property on the view class, and a different template being passed in as an option', function () {
+
+                    beforeEach( function () {
+                        View = Backbone.View.extend( { template: "#template" } );
+                        view = new View( { template: "#otherTemplate" } );
+                    } );
+                    
+                    it( 'it receives the template option passed to the view as first argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#otherTemplate" );
+                    } );
+
+                    it( 'it receives the view as second argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#otherTemplate", view );
+                    } );
+
+                } );
+                
             } );
 
-            it( 'the template option passed to the view, if the template has been specified that way', function () {
-                new View( { template: "#template" } );
-                expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template" );
-            } );
+            describe( 'When the custom loader is called from the global API', function () {
 
-            it( 'the template option passed to the view, if the template has been specified as a property but been overridden with the option', function () {
-                View = Backbone.View.extend( { template: "#template" } );
-                new View( { template: "#otherTemplate" } );
-                expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#otherTemplate" );
+                describe( 'with the template selector provided as the only argument', function () {
+
+                    beforeEach( function () {
+                        Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                    } );
+
+                    it( 'the loader receives the template selector as first argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template" );
+                    } );
+
+                    it( 'the second argument provided to the loader is undefined', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", undefined );
+                    } );
+
+                } );
+
+                describe( 'with the template selector and a view provided as arguments', function () {
+
+                    beforeEach( function () {
+                        view = new View();
+                        Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                    } );
+
+                    it( 'the loader receives the template selector as first argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template" );
+                    } );
+
+                    it( 'the loader receives the view as second argument', function () {
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", view );
+                    } );
+
+                } );
+
             } );
 
         } );
