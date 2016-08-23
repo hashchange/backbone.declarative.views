@@ -53,6 +53,7 @@
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
         CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
         CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" ),
+        ConfigurationError = createCustomErrorType( "Backbone.DeclarativeViews.ConfigurationError" ),
 
         $ = Backbone.$;
 
@@ -115,6 +116,7 @@
         TemplateError: TemplateError,
         CompilerError: CompilerError,
         CustomizationError: CustomizationError,
+        ConfigurationError: ConfigurationError,
 
         plugins: {
             registerDataAttribute: _registerDataAttribute,
@@ -717,7 +719,8 @@
         return error instanceof GenericError ||
                error instanceof TemplateError ||
                error instanceof CompilerError ||
-               error instanceof CustomizationError;
+               error instanceof CustomizationError ||
+               error instanceof ConfigurationError;
     }
 
     //
