@@ -456,7 +456,11 @@
                 tagName: data.tagName,
                 className: data.className,
                 id: data.id,
-                attributes: data.attributes
+                attributes: data.attributes,
+
+                // Data store for plugins. Plugins should create their own namespace in the store, with the plugin name
+                // as key.
+                _pluginData: {}
             };
 
         } else {

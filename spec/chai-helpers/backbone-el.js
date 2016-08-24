@@ -300,8 +300,9 @@
      * @param {Object}             dataAttributes                hash of data attributes. Key names must have the "data-" prefix
      * @param {jQuery|string}      outerHtml                     outer HTML of the template node, may or may not include the data attributes
      * @param {Function|undefined} [compiledTemplate=undefined]  the expected template function
+     * @param {Object|undefined}   [pluginData={}]               the expected plugin data associated with the cache entry
      */
-    Assertion.addMethod( 'returnCacheValueFor', function ( dataAttributes, outerHtml, compiledTemplate ) {
+    Assertion.addMethod( 'returnCacheValueFor', function ( dataAttributes, outerHtml, compiledTemplate, pluginData ) {
 
         var $template, invalidDataAttributes, compiled, expected, transformed,
             attrNames = [],
@@ -342,6 +343,10 @@
             if ( !_.isString( compiled ) ) throw new Error( "Invalid compiledTemplate function passed in as expected value. The compiledTemplate function did not produce a string when called" );
         }
 
+        if ( pluginData ) {
+            new Assertion( pluginData ).to.be.an( "object", "Invalid pluginData argument passed as expected value. It must be an object but is a " + ( typeof pluginData ) );
+        }
+
         // Remove existing data attributes from the $template node and replace them with the ones specified in
         // dataAttributes.
         //
@@ -367,7 +372,8 @@
             dataAttributesToProperties( dataAttributes ),
             {
                 html: $template.html(),
-                compiled: compiled
+                compiled: compiled,
+                _pluginData: pluginData || {}
             } );
 
         // Finally, do the actual test.
