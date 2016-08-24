@@ -91,7 +91,9 @@
             if ( options && options.template !== undefined ) this.template = options.template;
 
             this.declarativeViews = {
-                meta: {},
+                meta: {
+                   viewId: _.uniqueId( "view-" )
+                },
                 getCachedTemplate: _.partial( getViewTemplateData, this ),
                 clearCachedTemplate: _.partial( clearViewTemplateCache, this )
             };
@@ -202,11 +204,12 @@
 
             if ( view.template && _.isString( view.template ) ) {
 
+                meta.originalTemplateProp = view.template;
+
                 data = getTemplateData( view.template, view, viewOptions );
 
                 meta.processed = true;
                 meta.inGlobalCache = true;
-                meta.originalTemplateProp = view.template;
 
             } else {
 
