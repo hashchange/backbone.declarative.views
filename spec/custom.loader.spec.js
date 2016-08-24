@@ -67,7 +67,7 @@
                     } );
 
                     it( 'it receives the view as second argument', function () {
-                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", view );
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template", view );
                     } );
 
                 } );
@@ -83,7 +83,7 @@
                     } );
 
                     it( 'it receives the view as second argument', function () {
-                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", view );
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template", view );
                     } );
 
                 } );
@@ -100,7 +100,7 @@
                     } );
 
                     it( 'it receives the view as second argument', function () {
-                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#otherTemplate", view );
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#otherTemplate", view );
                     } );
 
                 } );
@@ -120,7 +120,7 @@
                     } );
 
                     it( 'the second argument provided to the loader is undefined', function () {
-                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", undefined );
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template", undefined );
                     } );
 
                 } );
@@ -137,7 +137,7 @@
                     } );
 
                     it( 'the loader receives the view as second argument', function () {
-                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWithExactly( "#template", view );
+                        expect( Backbone.DeclarativeViews.custom.loadTemplate ).to.have.been.calledWith( "#template", view );
                     } );
 
                 } );

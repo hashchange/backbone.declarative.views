@@ -100,7 +100,7 @@
                 this[alias] = this.declarativeViews;
             }, this );
 
-            if ( enforceTemplateLoading ) getViewTemplateData( this );
+            if ( enforceTemplateLoading ) getViewTemplateData( this, options );
 
             originalConstructor.apply( this, arguments );
         }
@@ -158,17 +158,19 @@
      *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
-     * @param   {string}        templateProp  template selector, or raw template HTML, identifying the cache entry
-     * @param   {Backbone.View} [view]        the view which requested the template
+     * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
+     * @param   {Backbone.View} [view]         the view which requested the template
+     * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. For availability,
+     *                                         see getViewTemplateData()
      * @returns {CachedTemplateData|undefined}
      */
-    function getTemplateData ( templateProp, view ) {
+    function getTemplateData ( templateProp, view, viewOptions ) {
         var data;
 
         if ( templateProp && _.isString( templateProp ) ) {
 
             data = templateCache[ templateProp ];
-            if ( ! data ) data = _createTemplateCache( templateProp, view );
+            if ( ! data ) data = _createTemplateCache( templateProp, view, viewOptions );
 
             if ( data.invalid ) data = undefined;
 
@@ -184,9 +186,12 @@
      * The template data is returned as a hash. For a list of properties, see readme.
      *
      * @param   {Backbone.View} view
+     * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. Only available when
+     *                                         called during view instantiation, and only if the component has been
+     *                                         configured to enforce template loading, with _enforceTemplateLoading()
      * @returns {CachedTemplateData|undefined}
      */
-    function getViewTemplateData ( view ) {
+    function getViewTemplateData ( view, viewOptions ) {
         var data,
             meta = view.declarativeViews.meta;
 
@@ -194,7 +199,7 @@
 
             if ( view.template && _.isString( view.template ) ) {
 
-                data = getTemplateData( view.template, view );
+                data = getTemplateData( view.template, view, viewOptions );
 
                 meta.processed = true;
                 meta.inGlobalCache = true;
@@ -210,7 +215,7 @@
             }
 
         } else {
-            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp, view ) : undefined;
+            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp, view, viewOptions ) : undefined;
         }
 
         return data;
@@ -407,11 +412,13 @@
      *
      * Uses a custom loader if specified, instead of loading the template with jQuery (default).
      *
-     * @param   {string}        templateProp  template selector, or raw template HTML, identifying the cache entry
-     * @param   {Backbone.View} [view]        the view which requested the template
+     * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
+     * @param   {Backbone.View} [view]         the view which requested the template
+     * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. For availability,
+     *                                         see getViewTemplateData()
      * @returns {CachedTemplateData|Uncacheable}
      */
-    function _createTemplateCache( templateProp, view ) {
+    function _createTemplateCache( templateProp, view, viewOptions ) {
         var $template, data, html,
 
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
@@ -420,8 +427,9 @@
 
             cacheId = templateProp;
 
+        // Load the template
         try {
-            $template = customLoader ? customLoader( templateProp, view ) : defaultLoader( templateProp, view );
+            $template = customLoader ? customLoader( templateProp, view, viewOptions ) : defaultLoader( templateProp, view, viewOptions );
         } catch ( err ) {
             // Rethrow and exit if the alarm has been raised deliberately, using an error type of Backbone.DeclarativeViews.
             if( _isDeclarativeViewsErrorType( err ) ) throw err;
@@ -433,6 +441,7 @@
             throw new CustomizationError( "Invalid return value. The " + ( customLoader ? "custom" : "default" ) + " loadTemplate function must return a jQuery instance, but it hasn't" );
         }
 
+        // Create cache entry
         if ( $template.length ) {
 
             // Read the el-related data attributes of the template.
@@ -704,6 +713,9 @@
      * However, if the loader does not just fetch the template but also transforms the template element, that
      * transformation would not happen if all `el` properties are overridden. Calling _enforceTemplateLoading() and
      * setting the flag makes sure that the loader is called, even in that case.
+     *
+     * _enforceTemplateLoading() must also be called if the loader, or a cache creation helper, needs access to the view
+     * options which are passed to the constructor.
      */
     function _enforceTemplateLoading () {
         enforceTemplateLoading = true;
