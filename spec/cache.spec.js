@@ -912,6 +912,76 @@
 
         } );
 
+        describe( 'Protection of cache entries', function () {
+
+            // We test this by retrieving and manipulating a cache entry, then retrieving the cache entry again.
+
+            var _originalCompiler, retrieved;
+
+            beforeEach( function () {
+                _originalCompiler = Backbone.DeclarativeViews.custom.compiler;
+                Backbone.DeclarativeViews.custom.compiler = function ( templateHtml ) { return templateHtml; };
+
+                retrieved = Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+            } );
+
+            afterEach( function () {
+                Backbone.DeclarativeViews.custom.compiler = _originalCompiler;
+            } );
+
+            describe( 'The cache entry does not change when the returned object is manipulated', function () {
+
+                it( 'by overwriting the tagName property', function () {
+                    retrieved.tagName += " modified";
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).tagName ).to.equal( attributesAsProperties.tagName );
+                } );
+
+                it( 'by overwriting the className property', function () {
+                    retrieved.className += " modified";
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).className ).to.equal( attributesAsProperties.className );
+                } );
+
+                it( 'by overwriting the id property', function () {
+                    retrieved.id += " modified";
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).id ).to.equal( attributesAsProperties.id );
+                } );
+
+                it( 'by modifying the attributes property', function () {
+                    retrieved.attributes.newAttribute = "added";
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).attributes ).to.eql( attributesAsProperties.attributes );
+                } );
+
+                it( 'by overwriting the html property', function () {
+                    var originalValue = retrieved.html;
+                    retrieved.html += " modified";
+
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).html ).to.equal( originalValue );
+                } );
+
+                it( 'by overwriting the compiled property', function () {
+                    var originalValue = retrieved.compiled;
+                    retrieved.compiled = function () { return "foo"; };
+
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" ).compiled ).to.equal( originalValue );
+                } );
+
+            } );
+
+            describe( 'The cache entry does change', function () {
+
+                // The _pluginData property is not protected against subsequent modification. This is by design. Plugins
+                // must be able to write to the property on the retrieved cache entry and have that info stored
+                // permanently in the cache.
+
+                it( 'when the _pluginData objext is manipulated on the returned object', function () {
+                    retrieved._pluginData.added = "foo";
+                    expect( Backbone.DeclarativeViews.getCachedTemplate( "#template" )._pluginData ).to.have.a.property( "added", "foo" );
+                } );
+
+            } );
+
+        } );
+
     } );
 
 })();

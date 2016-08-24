@@ -158,8 +158,9 @@
      * Returns the template data associated with a template property string. Caches it in the process, or retrieves it
      * from the cache if already available. Returns undefined if there is no cacheable template data.
      *
-     * When retrieved from the cache, a shallow copy of the cache entry is returned. It protects the cache entry from
-     * modification (to the extent a shallow copy can achieve that) in case the data is manipulated later on.
+     * When retrieved from the cache, a copy of the cache entry is returned. It protects the cache entry from
+     * modification in case the data is manipulated later on. The protection also extends to the nested `attributes`
+     * hash. The `_pluginData` property, however, must remain writable, and is returned as is.
      *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
@@ -177,8 +178,7 @@
             if ( ! data ) data = _createTemplateCache( templateProp, view, viewOptions );
 
             if ( data.invalid ) data = undefined;
-
-            if ( data ) data = _.clone( data );
+            if ( data ) data = _copyCacheEntry( data );
         }
 
         return data;
@@ -404,6 +404,21 @@
         }
 
         return _.size( elDataAttributes ) ? elDataAttributes : undefined;
+    }
+
+    /**
+     * Creates a copy of a cache entry and returns it. Protects the original cache entry from modification, except for
+     * the _pluginData property, which remains writable and can be accessed from the copy.
+     *
+     * NB The `attribute` property is cloned and protected, too, if it exists.
+     *
+     * @param   {CachedTemplateData} cacheEntry
+     * @returns {CachedTemplateData}
+     */
+    function _copyCacheEntry ( cacheEntry ) {
+        var copy = _.clone( cacheEntry );
+        if ( _.isObject( copy.attributes ) ) copy.attributes = _.clone( copy.attributes );
+        return copy;
     }
 
     /**
