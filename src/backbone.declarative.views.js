@@ -156,6 +156,9 @@
      * Returns the template data associated with a template property string. Caches it in the process, or retrieves it
      * from the cache if already available. Returns undefined if there is no cacheable template data.
      *
+     * When retrieved from the cache, a shallow copy of the cache entry is returned. It protects the cache entry from
+     * modification (to the extent a shallow copy can achieve that) in case the data is manipulated later on.
+     *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
      * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
@@ -168,12 +171,12 @@
         var data;
 
         if ( templateProp && _.isString( templateProp ) ) {
-
             data = templateCache[ templateProp ];
             if ( ! data ) data = _createTemplateCache( templateProp, view, viewOptions );
 
             if ( data.invalid ) data = undefined;
 
+            if ( data ) data = _.clone( data );
         }
 
         return data;
