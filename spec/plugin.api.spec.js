@@ -19,7 +19,7 @@
 
             baseTemplateHtml = '<script id="template" type="text/x-template">This is the template <strong>markup</strong>.</script>';
 
-            $templateNode = $( baseTemplateHtml ).appendTo( "body" );
+            $templateNode = $( baseTemplateHtml ).appendTo( "head" );
 
             View = Backbone.View.extend();
 
@@ -27,7 +27,7 @@
 
         afterEach( function () {
             $templateNode.remove();
-            Backbone.DeclarativeViews.clearCachedTemplate( "#template" );
+            Backbone.DeclarativeViews.clearCache();
         } );
 
         describe( 'Registering a cache alias.', function () {
@@ -624,19 +624,503 @@
 
             } );
 
-            // Spec: Enforcing template loading with enforceTemplateLoading()
-            //
-            // Currently, this test is not implemented. Calling enforceTemplateLoading() is irreversible, it can't be
-            // turned off again. It would affect all subsequent tests - too strong an effect to be worth it.
-            //
-            // If the tests were implemented, this is what they would cover:
-            //
-            // - Define **all** el props in a Backbone view - this would prevent the loader from being called, normally,
-            //   if enforceTemplateLoading() were not invoked. But it is, so set up a spy checking if the loader has
-            //   indeed been called. For a spy, simply create a custom loader.
-            // - Check that nothing breaks when the template property is set to a function, an empty string etc.
         } );
-        
+
+        describe( 'Events', function () {
+
+            var dataAttributes, attributesAsProperties, processHandler, fetchHandler;
+
+            beforeEach( function () {
+                dataAttributes = {
+                    "data-tag-name": "section",
+                    "data-class-name": "dataClass",
+                    "data-id": "dataId",
+                    "data-attributes": '{ "lang": "en", "title": "title from data attributes" }'
+                };
+
+                // Equivalent of the data attributes as a hash of el properties.
+                //
+                // Written out for clarity. They could simply have been transformed with the test helper function
+                // `dataAttributesToProperties( defaultDataAttrs )`.
+                attributesAsProperties = {
+                    tagName: "section",
+                    className: "dataClass",
+                    id: "dataId",
+                    attributes: { lang: "en", title: "title from data attributes" }
+                };
+
+                $templateNode.attr( dataAttributes );
+
+                processHandler = sinon.spy();
+                fetchHandler = sinon.spy();
+
+                Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:view:process", processHandler );
+                Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:view:fetch", fetchHandler );
+            } );
+
+            afterEach( function () {
+                Backbone.DeclarativeViews.plugins.events.off();
+            } );
+
+            describe( 'cacheEntry:view:process event', function () {
+
+                describe( 'Triggering the event', function () {
+
+                    describe( 'When a view is created', function () {
+
+                        describe( 'with a template which is not in the cache, the event fires', function () {
+
+                            beforeEach( function () {
+                                view = new View( { template: "#template" } );
+                            } );
+
+                            it( 'exactly once', function () {
+                                expect( processHandler ).to.have.been.calledOnce;
+                            } );
+
+                            it( 'before the cacheEntry:view:fetch event', function () {
+                                expect( processHandler ).to.have.been.calledBefore( fetchHandler );
+                            } );
+
+                            it( 'with the cache entry passed as first argument', function () {
+                                var firstArg = processHandler.getCall( 0 ).args[0];
+                                expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                            } );
+
+                            it( 'with the template property passed as second argument', function () {
+                                var secondArg = processHandler.getCall( 0 ).args[1];
+                                expect( secondArg ).to.equal( "#template" );
+                            } );
+
+                            it( 'with the view passed as third argument', function () {
+                                var thirdArg = processHandler.getCall( 0 ).args[2];
+                                expect( thirdArg ).to.equal( view );
+                            } );
+
+                        } );
+
+                        describe( 'with a template which is already in the cache, the event fires', function () {
+
+                            beforeEach( function () {
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                view = new View( { template: "#template" } );
+                            } );
+
+                            it( 'exactly once', function () {
+                                expect( processHandler ).to.have.been.calledOnce;
+                            } );
+
+                            it( 'before the cacheEntry:view:fetch event', function () {
+                                expect( processHandler ).to.have.been.calledBefore( fetchHandler );
+                            } );
+
+                            it( 'with the cache entry passed as first argument', function () {
+                                var firstArg = processHandler.getCall( 0 ).args[0];
+                                expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                            } );
+
+                            it( 'with the template property passed as second argument', function () {
+                                var secondArg = processHandler.getCall( 0 ).args[1];
+                                expect( secondArg ).to.equal( "#template" );
+                            } );
+
+                            it( 'with the view passed as third argument', function () {
+                                var thirdArg = processHandler.getCall( 0 ).args[2];
+                                expect( thirdArg ).to.equal( view );
+                            } );
+
+                        } );
+
+                    } );
+
+                    describe( 'The event does not fire', function () {
+
+                        var _originalCustomLoader;
+
+                        beforeEach( function () {
+                            _originalCustomLoader = Backbone.DeclarativeViews.custom.loadTemplate;
+                        } );
+
+                        afterEach( function () {
+                            Backbone.DeclarativeViews.custom.loadTemplate = _originalCustomLoader;
+                        } );
+
+                        it( 'when the template is retrieved from the view cache after view creation', function () {
+                            view = new View( { template: "#template" } );
+                            processHandler.reset();
+                            view.declarativeViews.getCachedTemplate();
+
+                            expect( processHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view template is an empty string (cache miss)', function () {
+                            view = new View( { template: "" } );
+                            expect( processHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view template is a function (cache miss)', function () {
+                            view = new View( {
+                                template: function () { return "foo"; }
+                            } );
+                            expect( processHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view template is a string that a (custom) loader cannot process, throwing a generic error (cache miss)', function () {
+                            Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Error( "loadTemplate blew up" ); };
+                            view = new View( { template: "#throwsError" } );
+                            expect( processHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view does not specify a template', function () {
+                            view = new View();
+                            expect( processHandler ).to.not.have.been.called;
+                        } );
+
+                        describe( 'when the template is retrieved with the global API', function () {
+
+                            it( 'without a view argument', function () {
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                expect( processHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'with a view as argument which has been created with that template', function () {
+                                view = new View( { template: "#template" } );
+                                processHandler.reset();
+
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                expect( processHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'with a view as argument which has been created with another template', function () {
+                                var $template2 = $templateNode.clone().attr( { id: "template2" } ).appendTo( "head" );
+                                view = new View( { template: "#template2" } );
+                                processHandler.reset();
+
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                expect( processHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'with a view as argument which has not been created with any template', function () {
+                                view = new View();
+                                processHandler.reset();
+
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                expect( processHandler ).to.not.have.been.called;
+                            } );
+                            
+                        } );
+                        
+                    } );
+
+                } );
+
+                describe( 'Modifications of the cache value in the event handler', function () {
+
+                    var modifyingProcessHandler, originalProperties, modifiedProperties;
+
+                    beforeEach( function () {
+                        originalProperties = _.clone( attributesAsProperties );
+                        modifiedProperties = {
+                            tagName: "aside",
+                            className: "modifiedClass",
+                            attributes: {
+                                lang: "fr"
+                            },
+                            _pluginData: {
+                                added: "foo"
+                            }
+                        };
+
+                        modifyingProcessHandler = function ( cacheValue ) {
+                            cacheValue.tagName = modifiedProperties.tagName;
+                            cacheValue.className = modifiedProperties.className;
+                            cacheValue.attributes.lang = modifiedProperties.attributes.lang;
+                            cacheValue._pluginData.added = modifiedProperties._pluginData.added;
+
+                        };
+
+                        Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:view:process", modifyingProcessHandler );
+
+                        view = new View( { template: "#template" } );
+                    } );
+
+                    describe( 'made to `el`-related properties (all properties except the _pluginData property)', function () {
+
+                        it( 'do not show up in the result returned by the cache query and do not get applied to the `el`', function () {
+                            expect( view.el.tagName.toLowerCase() ).to.equal( originalProperties.tagName );
+                            expect( view.el.className ).to.equal( originalProperties.className );
+                            expect( view.el.lang ).to.equal( originalProperties.attributes.lang );
+                        } );
+
+                        it( 'do not show up in the cache value passed to a handler for the cacheEntry:view:fetch event', function () {
+                            var fetchEventCacheArg = fetchHandler.getCall( 0 ).args[0];
+                            expect( fetchEventCacheArg.tagName ).to.equal( originalProperties.tagName );
+                            expect( fetchEventCacheArg.className ).to.equal( originalProperties.className );
+                            expect( fetchEventCacheArg.attributes.lang ).to.equal( originalProperties.attributes.lang );
+                        } );
+
+                        it( 'do not change the cache entry itself', function () {
+                            var cacheEntry = Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                            expect( cacheEntry.tagName ).to.equal( originalProperties.tagName );
+                            expect( cacheEntry.className ).to.equal( originalProperties.className );
+                            expect( cacheEntry.attributes.lang ).to.equal( originalProperties.attributes.lang );
+                        } );
+
+                    } );
+
+                    describe( 'made to the _pluginData hash', function () {
+
+                        it( 'show up in the cache value passed to a handler for the cacheEntry:view:fetch event', function () {
+                            var fetchEventCacheArg = fetchHandler.getCall( 0 ).args[0];
+                            expect( fetchEventCacheArg._pluginData ).to.have.a.property( "added", modifiedProperties._pluginData.added );
+                        } );
+
+                        it( 'change the cache entry itself and persist', function () {
+                            var cacheEntry = Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                            expect( cacheEntry._pluginData ).to.have.a.property( "added", modifiedProperties._pluginData.added );
+                        } );
+
+                    } );
+
+                } );
+
+            } );
+
+            describe( 'cacheEntry:view:fetch event', function () {
+
+                describe( 'Triggering the event', function () {
+
+                    describe( 'When a view is created', function () {
+
+                        describe( 'with a template which is not in the cache, the event fires', function () {
+
+                            beforeEach( function () {
+                                view = new View( { template: "#template" } );
+                            } );
+
+                            it( 'once for each el-related property which has not been defined on the view itself', function () {
+                                // In the test fixture, no el-related properties are defined on the view itself.
+                                // Therefore, we expect four calls (for tagName, className, id, attributes).
+                                expect( fetchHandler ).to.have.callCount( 4 );
+                            } );
+
+                            it( 'with the cache entry passed as first argument', function () {
+                                var firstArg = fetchHandler.getCall( 0 ).args[0];
+                                expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                            } );
+
+                            it( 'with the template property passed as second argument', function () {
+                                var secondArg = fetchHandler.getCall( 0 ).args[1];
+                                expect( secondArg ).to.equal( "#template" );
+                            } );
+
+                            it( 'with the view passed as third argument', function () {
+                                var thirdArg = fetchHandler.getCall( 0 ).args[2];
+                                expect( thirdArg ).to.equal( view );
+                            } );
+
+                        } );
+
+                        describe( 'with a template which is already in the cache, the event fires', function () {
+
+                            beforeEach( function () {
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                view = new View( { template: "#template" } );
+                            } );
+
+                            it( 'once for each el-related property which has not been defined on the view itself', function () {
+                                // In the test fixture, no el-related properties are defined on the view itself.
+                                // Therefore, we expect four calls (for tagName, className, id, attributes).
+                                expect( fetchHandler ).to.have.callCount( 4 );
+                            } );
+
+                            it( 'with the cache entry passed as first argument', function () {
+                                var firstArg = fetchHandler.getCall( 0 ).args[0];
+                                expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                            } );
+
+                            it( 'with the template property passed as second argument', function () {
+                                var secondArg = fetchHandler.getCall( 0 ).args[1];
+                                expect( secondArg ).to.equal( "#template" );
+                            } );
+
+                            it( 'with the view passed as third argument', function () {
+                                var thirdArg = fetchHandler.getCall( 0 ).args[2];
+                                expect( thirdArg ).to.equal( view );
+                            } );
+
+                        } );
+
+                    } );
+
+                    describe( 'When the template is retrieved from the view cache after view creation, the event fires', function () {
+
+                        beforeEach( function () {
+                            view = new View( { template: "#template" } );
+                            fetchHandler.reset();
+                            view.declarativeViews.getCachedTemplate();
+                        } );
+
+                        it( 'exactly once', function () {
+                            expect( fetchHandler ).to.have.been.calledOnce;
+                        } );
+
+                        it( 'with the cache entry passed as first argument', function () {
+                            var firstArg = fetchHandler.getCall( 0 ).args[0];
+                            expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                        } );
+
+                        it( 'with the template property passed as second argument', function () {
+                            var secondArg = fetchHandler.getCall( 0 ).args[1];
+                            expect( secondArg ).to.equal( "#template" );
+                        } );
+
+                        it( 'with the view passed as third argument', function () {
+                            var thirdArg = fetchHandler.getCall( 0 ).args[2];
+                            expect( thirdArg ).to.equal( view );
+                        } );
+
+                    } );
+
+                    describe( 'The event does not fire', function () {
+
+                        var _originalCustomLoader;
+
+                        beforeEach( function () {
+                            _originalCustomLoader = Backbone.DeclarativeViews.custom.loadTemplate;
+                        } );
+
+                        afterEach( function () {
+                            Backbone.DeclarativeViews.custom.loadTemplate = _originalCustomLoader;
+                        } );
+
+                        it( 'when the view template is an empty string (cache miss)', function () {
+                            view = new View( { template: "" } );
+                            expect( fetchHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view template is a function (cache miss)', function () {
+                            view = new View( {
+                                template: function () { return "foo"; }
+                            } );
+                            expect( fetchHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view template is a string that a (custom) loader cannot process, throwing a generic error (cache miss)', function () {
+                            Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Error( "loadTemplate blew up" ); };
+                            view = new View( { template: "#throwsError" } );
+                            expect( fetchHandler ).to.not.have.been.called;
+                        } );
+
+                        it( 'when the view does not specify a template', function () {
+                            view = new View();
+                            expect( fetchHandler ).to.not.have.been.called;
+                        } );
+
+                        describe( 'when the template is retrieved with the global API', function () {
+
+                            it( 'without a view argument', function () {
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                expect( fetchHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'with a view as argument which has been created with that template', function () {
+                                view = new View( { template: "#template" } );
+                                fetchHandler.reset();
+
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                expect( fetchHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'with a view as argument which has been created with another template', function () {
+                                var $template2 = $templateNode.clone().attr( { id: "template2" } ).appendTo( "head" );
+                                view = new View( { template: "#template2" } );
+                                fetchHandler.reset();
+
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                expect( fetchHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'with a view as argument which has not been created with any template', function () {
+                                view = new View();
+                                fetchHandler.reset();
+
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                expect( fetchHandler ).to.not.have.been.called;
+                            } );
+
+                        } );
+
+                    } );
+
+                } );
+
+                describe( 'Modifications of the cache value in the event handler', function () {
+
+                    var modifyingFetchHandler, originalProperties, modifiedProperties;
+
+                    beforeEach( function () {
+                        originalProperties = _.clone( attributesAsProperties );
+                        modifiedProperties = {
+                            tagName: "aside",
+                            className: "modifiedClass",
+                            attributes: {
+                                lang: "fr"
+                            },
+                            _pluginData: {
+                                added: "foo"
+                            }
+                        };
+
+                        modifyingFetchHandler = function ( cacheValue ) {
+                            cacheValue.tagName = modifiedProperties.tagName;
+                            cacheValue.className = modifiedProperties.className;
+                            cacheValue.attributes.lang = modifiedProperties.attributes.lang;
+                            cacheValue._pluginData.added = modifiedProperties._pluginData.added;
+
+                        };
+
+                        Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:view:fetch", modifyingFetchHandler );
+
+                        view = new View( { template: "#template" } );
+                    } );
+
+                    it( 'show up in the result returned by the cache query and get applied to the `el`', function () {
+                        expect( view.el.tagName.toLowerCase() ).to.equal( modifiedProperties.tagName );
+                        expect( view.el.className ).to.equal( modifiedProperties.className );
+                        expect( view.el.lang ).to.equal( modifiedProperties.attributes.lang );
+                    } );
+
+                    it( 'do not change the cache entry itself, except for modifications of _pluginData, which persist in the cache', function () {
+                        var cacheEntry = Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+
+                        expect( cacheEntry.tagName ).to.equal( originalProperties.tagName );
+                        expect( cacheEntry.className ).to.equal( originalProperties.className );
+                        expect( cacheEntry.attributes.lang ).to.equal( originalProperties.attributes.lang );
+
+                        expect( cacheEntry._pluginData ).to.have.a.property( "added", modifiedProperties._pluginData.added );
+                    } );
+
+                } );
+
+            } );
+
+        } );
+
+        } );
+
+        // Spec: Enforcing template loading with enforceTemplateLoading()
+        //
+        // Currently, this test is not implemented. Calling enforceTemplateLoading() is irreversible, it can't be
+        // turned off again. It would affect all subsequent tests - too strong an effect to be worth it.
+        //
+        // If the tests were implemented, this is what they would cover:
+        //
+        // - Define **all** el props in a Backbone view - this would prevent the loader from being called, normally,
+        //   if enforceTemplateLoading() were not invoked. But it is, so set up a spy checking if the loader has
+        //   indeed been called. For a spy, simply create a custom loader.
+        // - Check that nothing breaks when the template property is set to a function, an empty string etc.
+
     } );
 
 })();

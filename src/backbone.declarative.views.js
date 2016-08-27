@@ -55,6 +55,8 @@
         CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" ),
         ConfigurationError = createCustomErrorType( "Backbone.DeclarativeViews.ConfigurationError" ),
 
+        events = _.clone( Backbone.Events ),
+
         $ = Backbone.$;
 
     //
@@ -125,7 +127,8 @@
             getDataAttributes: _getDataAttributes,
             updateJqueryDataCache: _updateJQueryDataCache,
             registerCacheAlias: _registerCacheAlias,
-            enforceTemplateLoading: _enforceTemplateLoading
+            enforceTemplateLoading: _enforceTemplateLoading,
+            events: events
         },
 
         defaults: {
@@ -190,6 +193,50 @@
      *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
+     * Events
+     * ------
+     *
+     * The method fires two events:
+     *
+     * - cacheEntry:view:process
+     *
+     *   Fires only once per view, on first access to the template from that particular view. Fires whether or not the
+     *   template is already in the cache.
+     *
+     *   The event handler receives a **copy** of the returned cache data. Modifications of the data are ineffective,
+     *   they don't show up anywhere outside of the handler.
+     *
+     *   (That is by design. When setting up the el of a view, the cache is accessed several times - once for each
+     *   el-related property. The handler would be able to modify the data during the very first access, when the
+     *   `attributes` property is requested, but not for `className`, `tagName`, `id`. That behaviour can be confusing
+     *   and cause bugs which are difficult to track down. Hence data modification is actively prevented even during
+     *   first access, making the behaviour consistent.)
+     *
+     *   But there is an exception: the _pluginData property. If the handler needs to change or store data, it can write
+     *   to the _pluginData hash. Changes to the hash are persistent. They are stored in the original cache entry and
+     *   hence show up in every subsequent cache query for that entry.
+     *
+     *   NB: When `el`-related properties from the cache, like tagName or html, need to be manipulated on the fly, it
+     *   must be done in a handler for another event: cacheEntry:view:fetch. That handler _is_ allowed to change the
+     *   returned data. It also has access to the _pluginData created during the cacheEntry:view:process event.
+     *
+     * - cacheEntry:view:fetch
+     *
+     *   Fires every time data is requested from the cache in the context of a querying view. The event fires on first
+     *   access as well. On that occasion, it is preceded by the cacheEntry:view:process event.
+     *
+     *   The event handler receives the returned cache data and has full access to it. If the handler modifies the data,
+     *   the modifications show up in the returned result.
+     *
+     *   However, the original cache entry is protected from modification (with the exception of the _pluginData
+     *   property, see above), so changes made by the event handler do not alter the values stored in the cache.
+     *
+     * The events fire only if the cache is accessed with getViewTemplateData(), ie when the cache is queried from a
+     * view: during view instantiation, or when called with `view.declarativeViews.getCachedTemplate()`.
+     *
+     * The events do **not** fire when the cache is queried from the global API, even if a view is provided as an
+     * additional argument, as in `Backbone.DeclarativeViews.getCachedTemplate( "#template", view )`.
+     *
      * @param   {Backbone.View} view
      * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. Only available when
      *                                         called during view instantiation, and only if the component has been
@@ -211,6 +258,8 @@
                 meta.processed = true;
                 meta.inGlobalCache = true;
 
+                if ( data) events.trigger( "cacheEntry:view:process", _copyCacheEntry( data ), meta.originalTemplateProp, view, viewOptions );
+
             } else {
 
                 data = undefined;
@@ -223,6 +272,8 @@
         } else {
             data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp, view, viewOptions ) : undefined;
         }
+
+        if ( data ) events.trigger( "cacheEntry:view:fetch", data, meta.originalTemplateProp, view, viewOptions );
 
         return data;
     }
