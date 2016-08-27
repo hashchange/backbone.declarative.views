@@ -1107,6 +1107,81 @@
 
         } );
 
+        describe( 'View ID', function () {
+
+            describe( 'The view id is available', function () {
+
+                describe( 'when a view is created', function () {
+
+                    var _originalCustomLoader;
+
+                    beforeEach( function () {
+                        _originalCustomLoader = Backbone.DeclarativeViews.custom.loadTemplate;
+                    } );
+
+                    afterEach( function () {
+                        Backbone.DeclarativeViews.custom.loadTemplate = _originalCustomLoader;
+                    } );
+
+                    it( 'with a template in the DOM', function () {
+                        view = new View( { template: "#template" } );
+                        expect( view.declarativeViews.meta ).to.have.a.property( "viewId" );
+                        expect( view.declarativeViews.meta.viewId ).to.match( /^view-\d+/ );
+                    } );
+
+                    it( 'with a template string', function () {
+                        view = new View( { template: "hi there!" } );
+                        expect( view.declarativeViews.meta ).to.have.a.property( "viewId" );
+                        expect( view.declarativeViews.meta.viewId ).to.match( /^view-\d+/ );
+                    } );
+
+                    it( 'with a template set to an empty string (cache miss)', function () {
+                        view = new View( { template: "" } );
+                        expect( view.declarativeViews.meta ).to.have.a.property( "viewId" );
+                        expect( view.declarativeViews.meta.viewId ).to.match( /^view-\d+/ );
+                    } );
+
+                    it( 'with a template set to a function (cache miss)', function () {
+                        view = new View( {
+                            template: function () { return "foo"; }
+                        } );
+                        expect( view.declarativeViews.meta ).to.have.a.property( "viewId" );
+                        expect( view.declarativeViews.meta.viewId ).to.match( /^view-\d+/ );
+                    } );
+
+                    it( 'with a template string that a (custom) loader cannot process, throwing a generic error (cache miss)', function () {
+                        Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Error( "loadTemplate blew up" ); };
+                        view = new View( { template: "#throwsError" } );
+
+                        expect( view.declarativeViews.meta ).to.have.a.property( "viewId" );
+                        expect( view.declarativeViews.meta.viewId ).to.match( /^view-\d+/ );
+                    } );
+
+                    it( 'without a template', function () {
+                        view = new View();
+                        expect( view.declarativeViews.meta ).to.have.a.property( "viewId" );
+                        expect( view.declarativeViews.meta.viewId ).to.match( /^view-\d+/ );
+                    } );
+
+                } );
+
+                it( 'by the time a loader runs', function () {
+                    // The loader is the first external entity to access view data, even before the events
+                    // cacheEntry:view:process and :fetch are triggered, and a long time ahead of initialize().
+                    // There is no need to test all of them if the view ID is already available to the loader.
+                    var viewId;
+
+                    Backbone.DeclarativeViews.custom.loadTemplate = function ( templateProperty, view ) {
+                        viewId = view.declarativeViews.meta.viewId;
+                        return $( templateProperty );
+                    };
+
+                    view = new View( { template: "#template" } );
+                    expect( viewId ).to.match( /^view-\d+/ );
+                } );
+                
+            } );
+
         } );
 
         // Spec: Enforcing template loading with enforceTemplateLoading()
