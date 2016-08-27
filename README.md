@@ -290,8 +290,13 @@ When you pull data from the cache with `getCachedTemplate()`, you _do not_ get a
 - `className` (string, or undefined):<br>
   the class name of the `el`, if defined by a data attribute.
 
+- `id` (string, or undefined):<br>
+  the id of the `el`, if defined by a data attribute.
+
 - `attributes` (hash, or undefined):<br>
   hash of `el` attributes and their values, if defined by a data attribute.
+
+You'll also find an internal `_pluginData` property which you should ignore.
 
 #### What about cache misses?
 
@@ -569,6 +574,12 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 - Loader receives view as second argument when called in the context of a view
 - `Backbone.DeclarativeViews.getCachedTemplate()` accepts view context as optional second argument (passed on to loader)
+- Loader receives view options as third argument when available. Intended for plugins only. Requires activation of `enforceTemplateLoading()`. Loader must be called in the context of a view.
+- Added `_pluginData` property to cache entries
+- Added `Backbone.DeclarativeViews.plugins.events` for use by plugins
+- Added events `"cacheEntry:view:process"` and `"cacheEntry:view:fetch"` for use by plugins
+- Added a view ID to the meta data of views which have been processed successfully
+- Made cache queries return a copy of the data to protect the original cache entry from modification
 - Added error type `Backbone.DeclarativeViews.ConfigurationError`
 
 ### v3.1.0
