@@ -4,7 +4,7 @@
 
     var View, view, $templateNode, dataAttributes, attributesAsProperties;
 
-    describe( 'Tests with Marionette.ItemView', function () {
+    describe( 'Tests with Marionette.View (Marionette 3) / Marionette.ItemView (Marionette 2)', function () {
 
         before( function () {
             Backbone.DeclarativeViews.clearCache();
@@ -59,7 +59,7 @@
                         { "data-foo": "bar" }
                     ) );
 
-                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                    View = getMarionetteView().extend( { template: "#template" } );
                     view = new View();
 
                 } );
@@ -106,22 +106,22 @@
                 after( cleanup );
 
                 it( 'when the view does not reference a template', function () {
-                    View = Backbone.Marionette.ItemView.extend();
+                    View = getMarionetteView().extend();
                     expect( View ).to.createElWithStandardMechanism;
                 } );
 
                 it( 'when the view references a template, but it does not have data attributes describing the el', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                    View = getMarionetteView().extend( { template: "#template" } );
                     expect( View ).to.createElWithStandardMechanism;
                 } );
 
                 it( 'when the view references a template which does not exist', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: "#doesNotExist" } );
+                    View = getMarionetteView().extend( { template: "#doesNotExist" } );
                     expect( View ).to.createElWithStandardMechanism;
                 } );
 
                 it( 'when the view has a template property, but it is a function rather than a selector', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: function () {
+                    View = getMarionetteView().extend( { template: function () {
                         return "<article></article>";
                     } } );
 
@@ -152,8 +152,8 @@
 
                 after( cleanup );
 
-                it( 'when a template property is set by extending Marionette.ItemView', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                it( 'when a template property is set by extending Marionette.View/Marionette.ItemView', function () {
+                    View = getMarionetteView().extend( { template: "#template" } );
                     view = new View( { model: model } );
                     view.render();
 
@@ -161,7 +161,7 @@
                 } );
 
                 it( 'when a template is passed in as an option during instantiation', function () {
-                    View = Backbone.Marionette.ItemView.extend();
+                    View = getMarionetteView().extend();
                     view = new View( { model: model, template: "#template" } );
                     view.render();
 
@@ -189,14 +189,14 @@
             describe( 'The view does not have a template property initially, but it gets created during instantiation.', function () {
 
                 it( 'The template data attributes get applied to the el of the view if the template selector is passed in as an option', function () {
-                    View = Backbone.Marionette.ItemView.extend();
+                    View = getMarionetteView().extend();
                     view = new View( { template: "#template" } );
 
                     expect( view ).to.have.exactElProperties( attributesAsProperties );
                 } );
 
                 it( 'The template data attributes do not get applied to the view if the template selector is created and set during initialize', function () {
-                    View = Backbone.Marionette.ItemView.extend( {
+                    View = getMarionetteView().extend( {
                         initialize: function () {
                             this.template = "#template";
                         }
@@ -211,7 +211,7 @@
             describe( 'The view has a template property, and it is a selector initially.', function () {
 
                 it( 'When the selector is overwritten in initialize, the template data attributes still get applied to the el of the view', function () {
-                    View = Backbone.Marionette.ItemView.extend( {
+                    View = getMarionetteView().extend( {
                         template: "#template",
                         initialize: function () {
                             this.template = function () { return "template content" };
@@ -242,7 +242,7 @@
             describe( 'Properties of el, defined in the template with data attributes, are overridden', function () {
 
                 it( 'by an instance property', function () {
-                    View = Backbone.Marionette.ItemView.extend( {
+                    View = getMarionetteView().extend( {
                         template: "#template",
                         tagName: "article",
                         id: "setInInstanceProperty"
@@ -254,7 +254,7 @@
                 } );
 
                 it( 'by an option passed in during instantiation', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                    View = getMarionetteView().extend( { template: "#template" } );
                     view = new View( { tagName: "article", id: "setInInstanceProperty" } );
 
                     _.extend( attributesAsProperties, { tagName: "article", id: "setInInstanceProperty" } );
@@ -283,29 +283,29 @@
             describe( 'Backbone default behaviour remains unchanged', function () {
 
                 it( 'when the view does not reference a template', function () {
-                    View = Backbone.Marionette.ItemView.extend();
+                    View = getMarionetteView().extend();
                     expect( View ).to.useExistingElWithoutAlteringIt( $existingEl );
                 } );
 
                 it( 'when the view references a template, but it does not have data attributes describing the el', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                    View = getMarionetteView().extend( { template: "#template" } );
                     expect( View ).to.useExistingElWithoutAlteringIt( $existingEl );
                 } );
 
                 it( 'when the view references a template, even when it has data attributes describing the el', function () {
                     // data attributes get ignored
                     $templateNode.attr( dataAttributes );
-                    View = Backbone.Marionette.ItemView.extend( { template: "#template" } );
+                    View = getMarionetteView().extend( { template: "#template" } );
                     expect( View ).to.useExistingElWithoutAlteringIt( $existingEl );
                 } );
 
                 it( 'when the view references a template which does not exist', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: "#doesNotExist" } );
+                    View = getMarionetteView().extend( { template: "#doesNotExist" } );
                     expect( View ).to.useExistingElWithoutAlteringIt( $existingEl );
                 } );
 
                 it( 'when the view has a template property, but it is a function rather than a selector', function () {
-                    View = Backbone.Marionette.ItemView.extend( { template: function () {
+                    View = getMarionetteView().extend( { template: function () {
                         return "<article></article>";
                     } } );
 

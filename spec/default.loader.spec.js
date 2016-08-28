@@ -214,7 +214,7 @@
         describe( 'A Marionette view remains true to its standard behaviour and throws an error on render(), or maybe even earlier', function () {
 
             it( 'when the view does not reference a template', function () {
-                View = Backbone.Marionette.ItemView.extend();
+                View = getMarionetteView().extend();
                 var view = new View();
                 expect( function () { view.render(); } ).to.throw( Error );
             } );
@@ -223,7 +223,7 @@
                 // This already blows up when the view is instantiated because the invalid return value becomes a
                 // problem not during render(), but when the el is constructed.
                 Backbone.DeclarativeViews.defaults.loadTemplate = function () {};
-                View = Backbone.Marionette.ItemView.extend( { template: "#returnsVoid" } );
+                View = getMarionetteView().extend( { template: "#returnsVoid" } );
 
                 expect( function () {
                         var view = new View();
@@ -233,7 +233,7 @@
 
             it( 'when the view references a template with a string that the default loader cannot process, throwing an error', function () {
                 Backbone.DeclarativeViews.defaults.loadTemplate = function () { throw new Error( "loadTemplate blew up" ); };
-                View = Backbone.Marionette.ItemView.extend( { template: "#throwsError" } );
+                View = getMarionetteView().extend( { template: "#throwsError" } );
                 var view = new View();
                 expect( function () { view.render(); } ).to.throw( Error );
             } );

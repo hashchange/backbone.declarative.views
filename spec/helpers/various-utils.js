@@ -199,3 +199,24 @@ function combine ( hashA, hashB, hashN ) {
 
     return _.extend.apply( undefined, [ {} ].concat( hashes ) );
 }
+
+/**
+ * Checks the Marionette version and returns true if it is less than 3.
+ *
+ * NB Marionette 1 and 2 don't expose the version, so we look for the version string of Marionette 3 (or above) and
+ * negate the result.
+ *
+ * @returns {boolean}
+ */
+function isMarionetteLt3 () {
+    return !( Backbone.Marionette.VERSION && Backbone.Marionette.VERSION[0] >= 3 );
+}
+
+/**
+ * Returns the basic Marionette view type: Marionette.ItemView for Marionette 1 and 2, Marionette.View for Marionette 3.
+ *
+ * @returns {Backbone.Marionette.ItemView|Backbone.Marionette.View}
+ */
+function getMarionetteView () {
+    return isMarionetteLt3() ? Backbone.Marionette.ItemView : Backbone.Marionette.View;
+}

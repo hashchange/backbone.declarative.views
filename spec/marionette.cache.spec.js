@@ -173,8 +173,8 @@
                 it.skip( 'does not clear other templates from the Marionette cache', function () {
                     // Delete the template nodes so that their content indeed must come from the cache
                     //
-                    // ATTN Skipped - Marionette is buggy, clears the whole cache (as of 2.4.1). This is not caused by
-                    // the Marionette integration code of Backbone.Declarative.Views.
+                    // ATTN Skipped - Marionette is buggy, clears the whole cache (as of 2.4.7 and 3.0.0). This is not
+                    // caused by the Marionette integration code of Backbone.Declarative.Views.
                     $templateNode2.remove();
                     $templateNode3.remove();
 
