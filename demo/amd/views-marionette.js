@@ -11,6 +11,9 @@ define( [
 
 ], function ( _, Backbone, Marionette, performance, base ) {
 
+    // Integrate with Marionette
+    Backbone.DeclarativeViews.joinMarionette();
+
     var MarionetteBaseView = Marionette.ItemView || Marionette.View,  // Base view type, depending on Marionette version
 
         ItemView = MarionetteBaseView.extend( {

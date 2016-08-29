@@ -47,7 +47,7 @@ requirejs.config( {
         },
 
         // Required for the Marionette demo
-        'backbone.declarative.views': ['marionette']
+        'marionette': ['backbone.declarative.views']
     }
 
 } );
