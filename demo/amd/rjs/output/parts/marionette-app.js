@@ -89,7 +89,12 @@ define( 'local.views-marionette',[
 
 ], function ( _, Backbone, Marionette, performance, base ) {
 
-    var ItemView = Marionette.ItemView.extend( {
+    // Integrate with Marionette
+    Backbone.DeclarativeViews.joinMarionette();
+
+    var MarionetteBaseView = Marionette.ItemView || Marionette.View,  // Base view type, depending on Marionette version
+
+        ItemView = MarionetteBaseView.extend( {
         
             appendTo: function ( $parent ) {
                 if ( !( $parent instanceof Backbone.$ ) ) $parent = Backbone.$( $parent );

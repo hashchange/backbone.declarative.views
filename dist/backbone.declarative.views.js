@@ -1,4 +1,4 @@
-// Backbone.Declarative.Views, v3.1.0
+// Backbone.Declarative.Views, v4.0.0
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -45,6 +45,7 @@
         instanceCacheAliases = [],
 
         enforceTemplateLoading = false,
+        isMarionetteInitialized = false,
 
         registeredDataAttributes = {
             primitives: [],
@@ -58,6 +59,9 @@
         TemplateError = createCustomErrorType( "Backbone.DeclarativeViews.TemplateError" ),
         CompilerError =  createCustomErrorType( "Backbone.DeclarativeViews.CompilerError" ),
         CustomizationError = createCustomErrorType( "Backbone.DeclarativeViews.CustomizationError" ),
+        ConfigurationError = createCustomErrorType( "Backbone.DeclarativeViews.ConfigurationError" ),
+
+        events = _.clone( Backbone.Events ),
 
         $ = Backbone.$;
 
@@ -95,7 +99,9 @@
             if ( options && options.template !== undefined ) this.template = options.template;
 
             this.declarativeViews = {
-                meta: {},
+                meta: {
+                   viewId: _.uniqueId( "view-" )
+                },
                 getCachedTemplate: _.partial( getViewTemplateData, this ),
                 clearCachedTemplate: _.partial( clearViewTemplateCache, this )
             };
@@ -104,7 +110,7 @@
                 this[alias] = this.declarativeViews;
             }, this );
 
-            if ( enforceTemplateLoading ) getViewTemplateData( this );
+            if ( enforceTemplateLoading ) getViewTemplateData( this, options );
 
             originalConstructor.apply( this, arguments );
         }
@@ -115,18 +121,22 @@
         getCachedTemplate: getTemplateData,
         clearCachedTemplate: clearCachedTemplate,
         clearCache: clearCache,
+
+        joinMarionette: joinMarionette,
         
         Error: GenericError,
         TemplateError: TemplateError,
         CompilerError: CompilerError,
         CustomizationError: CustomizationError,
+        ConfigurationError: ConfigurationError,
 
         plugins: {
             registerDataAttribute: _registerDataAttribute,
             getDataAttributes: _getDataAttributes,
             updateJqueryDataCache: _updateJQueryDataCache,
             registerCacheAlias: _registerCacheAlias,
-            enforceTemplateLoading: _enforceTemplateLoading
+            enforceTemplateLoading: _enforceTemplateLoading,
+            events: events
         },
 
         defaults: {
@@ -140,7 +150,7 @@
             compiler: undefined
         },
 
-        version: "3.1.0"
+        version: "4.0.0"
     };
 
     //
@@ -159,21 +169,27 @@
      * Returns the template data associated with a template property string. Caches it in the process, or retrieves it
      * from the cache if already available. Returns undefined if there is no cacheable template data.
      *
+     * When retrieved from the cache, a copy of the cache entry is returned. It protects the cache entry from
+     * modification in case the data is manipulated later on. The protection also extends to the nested `attributes`
+     * hash. The `_pluginData` property, however, must remain writable, and is returned as is.
+     *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
-     * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
+     * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
+     * @param   {Backbone.View} [view]         the view which requested the template
+     * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. For availability,
+     *                                         see getViewTemplateData()
      * @returns {CachedTemplateData|undefined}
      */
-    function getTemplateData ( templateProp ) {
+    function getTemplateData ( templateProp, view, viewOptions ) {
         var data;
 
         if ( templateProp && _.isString( templateProp ) ) {
-
             data = templateCache[ templateProp ];
-            if ( ! data ) data = _createTemplateCache( templateProp );
+            if ( ! data ) data = _createTemplateCache( templateProp, view, viewOptions );
 
             if ( data.invalid ) data = undefined;
-
+            if ( data ) data = _copyCacheEntry( data );
         }
 
         return data;
@@ -185,10 +201,57 @@
      *
      * The template data is returned as a hash. For a list of properties, see readme.
      *
+     * Events
+     * ------
+     *
+     * The method fires two events:
+     *
+     * - cacheEntry:view:process
+     *
+     *   Fires only once per view, on first access to the template from that particular view. Fires whether or not the
+     *   template is already in the cache.
+     *
+     *   The event handler receives a **copy** of the returned cache data. Modifications of the data are ineffective,
+     *   they don't show up anywhere outside of the handler.
+     *
+     *   (That is by design. When setting up the el of a view, the cache is accessed several times - once for each
+     *   el-related property. The handler would be able to modify the data during the very first access, when the
+     *   `attributes` property is requested, but not for `className`, `tagName`, `id`. That behaviour can be confusing
+     *   and cause bugs which are difficult to track down. Hence data modification is actively prevented even during
+     *   first access, making the behaviour consistent.)
+     *
+     *   But there is an exception: the _pluginData property. If the handler needs to change or store data, it can write
+     *   to the _pluginData hash. Changes to the hash are persistent. They are stored in the original cache entry and
+     *   hence show up in every subsequent cache query for that entry.
+     *
+     *   NB: When `el`-related properties from the cache, like tagName or html, need to be manipulated on the fly, it
+     *   must be done in a handler for another event: cacheEntry:view:fetch. That handler _is_ allowed to change the
+     *   returned data. It also has access to the _pluginData created during the cacheEntry:view:process event.
+     *
+     * - cacheEntry:view:fetch
+     *
+     *   Fires every time data is requested from the cache in the context of a querying view. The event fires on first
+     *   access as well. On that occasion, it is preceded by the cacheEntry:view:process event.
+     *
+     *   The event handler receives the returned cache data and has full access to it. If the handler modifies the data,
+     *   the modifications show up in the returned result.
+     *
+     *   However, the original cache entry is protected from modification (with the exception of the _pluginData
+     *   property, see above), so changes made by the event handler do not alter the values stored in the cache.
+     *
+     * The events fire only if the cache is accessed with getViewTemplateData(), ie when the cache is queried from a
+     * view: during view instantiation, or when called with `view.declarativeViews.getCachedTemplate()`.
+     *
+     * The events do **not** fire when the cache is queried from the global API, even if a view is provided as an
+     * additional argument, as in `Backbone.DeclarativeViews.getCachedTemplate( "#template", view )`.
+     *
      * @param   {Backbone.View} view
+     * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. Only available when
+     *                                         called during view instantiation, and only if the component has been
+     *                                         configured to enforce template loading, with _enforceTemplateLoading()
      * @returns {CachedTemplateData|undefined}
      */
-    function getViewTemplateData ( view ) {
+    function getViewTemplateData ( view, viewOptions ) {
         var data,
             meta = view.declarativeViews.meta;
 
@@ -196,11 +259,14 @@
 
             if ( view.template && _.isString( view.template ) ) {
 
-                data = getTemplateData( view.template );
+                meta.originalTemplateProp = view.template;
+
+                data = getTemplateData( view.template, view, viewOptions );
 
                 meta.processed = true;
                 meta.inGlobalCache = true;
-                meta.originalTemplateProp = view.template;
+
+                if ( data) events.trigger( "cacheEntry:view:process", _copyCacheEntry( data ), meta.originalTemplateProp, view, viewOptions );
 
             } else {
 
@@ -212,8 +278,10 @@
             }
 
         } else {
-            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp ) : undefined;
+            data = meta.inGlobalCache ? getTemplateData( meta.originalTemplateProp, view, viewOptions ) : undefined;
         }
+
+        if ( data ) events.trigger( "cacheEntry:view:fetch", data, meta.originalTemplateProp, view, viewOptions );
 
         return data;
     }
@@ -398,6 +466,21 @@
     }
 
     /**
+     * Creates a copy of a cache entry and returns it. Protects the original cache entry from modification, except for
+     * the _pluginData property, which remains writable and can be accessed from the copy.
+     *
+     * NB The `attribute` property is cloned and protected, too, if it exists.
+     *
+     * @param   {CachedTemplateData} cacheEntry
+     * @returns {CachedTemplateData}
+     */
+    function _copyCacheEntry ( cacheEntry ) {
+        var copy = _.clone( cacheEntry );
+        if ( _.isObject( copy.attributes ) ) copy.attributes = _.clone( copy.attributes );
+        return copy;
+    }
+
+    /**
      * Creates a cache entry for a given template property.
      *
      * Returns the cached entry if creating it has succeeded. In case of failure, it returns the hash { invalid: true }.
@@ -409,10 +492,13 @@
      *
      * Uses a custom loader if specified, instead of loading the template with jQuery (default).
      *
-     * @param   {string} templateProp  template selector, or raw template HTML, identifying the cache entry
+     * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
+     * @param   {Backbone.View} [view]         the view which requested the template
+     * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. For availability,
+     *                                         see getViewTemplateData()
      * @returns {CachedTemplateData|Uncacheable}
      */
-    function _createTemplateCache( templateProp ) {
+    function _createTemplateCache( templateProp, view, viewOptions ) {
         var $template, data, html,
 
             customLoader = Backbone.DeclarativeViews.custom.loadTemplate,
@@ -421,8 +507,9 @@
 
             cacheId = templateProp;
 
+        // Load the template
         try {
-            $template = customLoader ? customLoader( templateProp ) : defaultLoader( templateProp );
+            $template = customLoader ? customLoader( templateProp, view, viewOptions ) : defaultLoader( templateProp, view, viewOptions );
         } catch ( err ) {
             // Rethrow and exit if the alarm has been raised deliberately, using an error type of Backbone.DeclarativeViews.
             if( _isDeclarativeViewsErrorType( err ) ) throw err;
@@ -434,6 +521,7 @@
             throw new CustomizationError( "Invalid return value. The " + ( customLoader ? "custom" : "default" ) + " loadTemplate function must return a jQuery instance, but it hasn't" );
         }
 
+        // Create cache entry
         if ( $template.length ) {
 
             // Read the el-related data attributes of the template.
@@ -448,7 +536,11 @@
                 tagName: data.tagName,
                 className: data.className,
                 id: data.id,
-                attributes: data.attributes
+                attributes: data.attributes,
+
+                // Data store for plugins. Plugins should create their own namespace in the store, with the plugin name
+                // as key.
+                _pluginData: {}
             };
 
         } else {
@@ -705,6 +797,9 @@
      * However, if the loader does not just fetch the template but also transforms the template element, that
      * transformation would not happen if all `el` properties are overridden. Calling _enforceTemplateLoading() and
      * setting the flag makes sure that the loader is called, even in that case.
+     *
+     * _enforceTemplateLoading() must also be called if the loader, or a cache creation helper, needs access to the view
+     * options which are passed to the constructor.
      */
     function _enforceTemplateLoading () {
         enforceTemplateLoading = true;
@@ -722,50 +817,56 @@
         return error instanceof GenericError ||
                error instanceof TemplateError ||
                error instanceof CompilerError ||
-               error instanceof CustomizationError;
+               error instanceof CustomizationError ||
+               error instanceof ConfigurationError;
     }
 
     //
     // Marionette integration
     // ----------------------
 
-    // Only run if Marionette is available.
-    if ( Backbone.Marionette && Backbone.Marionette.TemplateCache ) {
+    function joinMarionette () {
 
-        originalClearCache = Backbone.Marionette.TemplateCache.clear;
+        if ( Backbone.Marionette && Backbone.Marionette.TemplateCache && !isMarionetteInitialized ) {
 
-        // Custom implementation of Marionette.TemplateCache.clear()
-        //
-        // When the Marionette cache is cleared, the DeclarativeViews cache is cleared as well. This is not technically
-        // necessary, but makes sense. If there is a reason to invalidate a cached template, it applies to all caches.
+            originalClearCache = Backbone.Marionette.TemplateCache.clear;
 
-        Backbone.Marionette.TemplateCache.clear = function () {
-            if ( arguments.length ) {
-                Backbone.DeclarativeViews.clearCachedTemplate( arguments, true );
-            } else {
-                Backbone.DeclarativeViews.clearCache( true );
-            }
+            // Custom implementation of Marionette.TemplateCache.clear()
+            //
+            // When the Marionette cache is cleared, the DeclarativeViews cache is cleared as well. This is not technically
+            // necessary, but makes sense. If there is a reason to invalidate a cached template, it applies to all caches.
 
-            originalClearCache.apply( this, arguments );
-        };
+            Backbone.Marionette.TemplateCache.clear = function () {
+                if ( arguments.length ) {
+                    Backbone.DeclarativeViews.clearCachedTemplate( arguments, true );
+                } else {
+                    Backbone.DeclarativeViews.clearCache( true );
+                }
 
-        // Removed: integration of the Marionette and Backbone.Declarative.Views template loading mechanisms
-        //
-        // Integrating the template loaders turned out to be of little or no benefit, and could potentially have caused
-        // problems with other custom loaders. In detail:
-        //
-        // - Integration saved exactly one DOM access per *template*. Given the limited number of templates in a project,
-        //   the performance gain had often been too small to even be measurable.
-        //
-        // - During testing with just a single template, the net effect was even negative (!) - integration and the
-        //   associated overhead seemed to slow things down.
-        //
-        // - With integration, custom loaders like the one for Marionette/Handlebars had been trickier to use. Load
-        //   order suddenly mattered. The code setting up a custom loader had to be run after integrating
-        //   Backbone.Declarative.Views with Marionette. Otherwise, the custom loader would haven been overwritten,
-        //   breaking the application.
-        //
-        // In a nutshell, loader integration has proven to be more trouble than it is worth.
+                originalClearCache.apply( this, arguments );
+            };
+
+            isMarionetteInitialized = true;
+
+            // Removed: integration of the Marionette and Backbone.Declarative.Views template loading mechanisms
+            //
+            // Integrating the template loaders turned out to be of little or no benefit, and could potentially have caused
+            // problems with other custom loaders. In detail:
+            //
+            // - Integration saved exactly one DOM access per *template*. Given the limited number of templates in a project,
+            //   the performance gain had often been too small to even be measurable.
+            //
+            // - During testing with just a single template, the net effect was even negative (!) - integration and the
+            //   associated overhead seemed to slow things down.
+            //
+            // - With integration, custom loaders like the one for Marionette/Handlebars had been trickier to use. Load
+            //   order suddenly mattered. The code setting up a custom loader had to be run after integrating
+            //   Backbone.Declarative.Views with Marionette. Otherwise, the custom loader would haven been overwritten,
+            //   breaking the application.
+            //
+            // In a nutshell, loader integration has proven to be more trouble than it is worth.
+
+        }
 
     }
 
