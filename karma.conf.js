@@ -38,6 +38,11 @@ module.exports = function(config) {
       'bower_components/underscore/underscore.js',
       'bower_components/backbone/backbone.js',
 
+      // Component under test (main)
+      'src/backbone.declarative.views.js',
+
+      // Marionette (must be loaded after Backbone.Declarative.Views)
+      //
       // Using the latest Marionette by default. Switch to Marionette 2.x as needed, or run Karma with the config for
       // legacy Marionette.
       //
@@ -47,9 +52,6 @@ module.exports = function(config) {
       // 'bower_components/marionette-legacy/lib/backbone.marionette.js',
       'bower_components/backbone.radio/build/backbone.radio.js',
       'bower_components/marionette/lib/backbone.marionette.js',
-
-      // Component under test (main)
-      'src/backbone.declarative.views.js',
 
       // Test helpers
       'node_modules/chai-subset/lib/chai-subset.js',

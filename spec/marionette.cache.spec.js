@@ -2,7 +2,9 @@
 (function () {
     "use strict";
 
-    // These tests require that Marionette has been loaded before Backbone.Declarative.Views.
+    // These tests require that Marionette has been loaded (after Backbone.Declarative.Views). We also make sure
+    // joinMarionette() has been called.
+    Backbone.DeclarativeViews.joinMarionette();
 
     describe( 'Integrated cache access of Marionette and Backbone.Declarative.Views', function () {
 

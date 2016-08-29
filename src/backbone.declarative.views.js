@@ -40,6 +40,7 @@
         instanceCacheAliases = [],
 
         enforceTemplateLoading = false,
+        isMarionetteInitialized = false,
 
         registeredDataAttributes = {
             primitives: [],
@@ -115,6 +116,8 @@
         getCachedTemplate: getTemplateData,
         clearCachedTemplate: clearCachedTemplate,
         clearCache: clearCache,
+
+        joinMarionette: joinMarionette,
         
         Error: GenericError,
         TemplateError: TemplateError,
@@ -817,43 +820,48 @@
     // Marionette integration
     // ----------------------
 
-    // Only run if Marionette is available.
-    if ( Backbone.Marionette && Backbone.Marionette.TemplateCache ) {
+    function joinMarionette () {
 
-        originalClearCache = Backbone.Marionette.TemplateCache.clear;
+        if ( Backbone.Marionette && Backbone.Marionette.TemplateCache && !isMarionetteInitialized ) {
 
-        // Custom implementation of Marionette.TemplateCache.clear()
-        //
-        // When the Marionette cache is cleared, the DeclarativeViews cache is cleared as well. This is not technically
-        // necessary, but makes sense. If there is a reason to invalidate a cached template, it applies to all caches.
+            originalClearCache = Backbone.Marionette.TemplateCache.clear;
 
-        Backbone.Marionette.TemplateCache.clear = function () {
-            if ( arguments.length ) {
-                Backbone.DeclarativeViews.clearCachedTemplate( arguments, true );
-            } else {
-                Backbone.DeclarativeViews.clearCache( true );
-            }
+            // Custom implementation of Marionette.TemplateCache.clear()
+            //
+            // When the Marionette cache is cleared, the DeclarativeViews cache is cleared as well. This is not technically
+            // necessary, but makes sense. If there is a reason to invalidate a cached template, it applies to all caches.
 
-            originalClearCache.apply( this, arguments );
-        };
+            Backbone.Marionette.TemplateCache.clear = function () {
+                if ( arguments.length ) {
+                    Backbone.DeclarativeViews.clearCachedTemplate( arguments, true );
+                } else {
+                    Backbone.DeclarativeViews.clearCache( true );
+                }
 
-        // Removed: integration of the Marionette and Backbone.Declarative.Views template loading mechanisms
-        //
-        // Integrating the template loaders turned out to be of little or no benefit, and could potentially have caused
-        // problems with other custom loaders. In detail:
-        //
-        // - Integration saved exactly one DOM access per *template*. Given the limited number of templates in a project,
-        //   the performance gain had often been too small to even be measurable.
-        //
-        // - During testing with just a single template, the net effect was even negative (!) - integration and the
-        //   associated overhead seemed to slow things down.
-        //
-        // - With integration, custom loaders like the one for Marionette/Handlebars had been trickier to use. Load
-        //   order suddenly mattered. The code setting up a custom loader had to be run after integrating
-        //   Backbone.Declarative.Views with Marionette. Otherwise, the custom loader would haven been overwritten,
-        //   breaking the application.
-        //
-        // In a nutshell, loader integration has proven to be more trouble than it is worth.
+                originalClearCache.apply( this, arguments );
+            };
+
+            isMarionetteInitialized = true;
+
+            // Removed: integration of the Marionette and Backbone.Declarative.Views template loading mechanisms
+            //
+            // Integrating the template loaders turned out to be of little or no benefit, and could potentially have caused
+            // problems with other custom loaders. In detail:
+            //
+            // - Integration saved exactly one DOM access per *template*. Given the limited number of templates in a project,
+            //   the performance gain had often been too small to even be measurable.
+            //
+            // - During testing with just a single template, the net effect was even negative (!) - integration and the
+            //   associated overhead seemed to slow things down.
+            //
+            // - With integration, custom loaders like the one for Marionette/Handlebars had been trickier to use. Load
+            //   order suddenly mattered. The code setting up a custom loader had to be run after integrating
+            //   Backbone.Declarative.Views with Marionette. Otherwise, the custom loader would haven been overwritten,
+            //   breaking the application.
+            //
+            // In a nutshell, loader integration has proven to be more trouble than it is worth.
+
+        }
 
     }
 
