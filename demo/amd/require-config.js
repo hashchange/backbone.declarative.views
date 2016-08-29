@@ -6,16 +6,15 @@ requirejs.config( {
     paths: {
         'usertiming': 'demo/bower_demo_components/usertiming/src/usertiming',
 
-        // Using a different jQuery here than elsewhere (1.x, instead of 3.x in node_modules and bower_components).
-        // Makes the demo work in oldIE, too.
-        'jquery': 'demo/bower_demo_components/jquery/dist/jquery',
-
-        // Use this path for switching to jQuery 3.x
-        // 'jquery': 'bower_components/jquery/dist/jquery',
+        'jquery-legacy-v1': 'bower_components/jquery-legacy-v1/dist/jquery',
+        'jquery-legacy-v2': 'bower_components/jquery-legacy-v2/dist/jquery',
+        'jquery-modern': 'bower_components/jquery/dist/jquery',
 
         'underscore': 'bower_components/underscore/underscore',
         'backbone': 'bower_components/backbone/backbone',
-        'marionette': 'bower_components/marionette/lib/backbone.marionette',
+        'backbone.radio': 'bower_components/backbone.radio/build/backbone.radio',
+        'marionette-modern': 'bower_components/marionette/lib/backbone.marionette',
+        'marionette-legacy': 'bower_components/marionette-legacy/lib/backbone.marionette',
 
         'backbone.declarative.views': 'dist/backbone.declarative.views',
 
@@ -26,20 +25,29 @@ requirejs.config( {
         'local.views-marionette': 'demo/amd/views-marionette'
     },
 
+    // Using a different jQuery here than elsewhere (1.x, instead of 3.x in node_modules and bower_components).
+    // Makes the demo work in oldIE, too. Likewise for Marionette: using Marionette 2.x, rather than 3.x, for
+    // legacy browsers.
+    map: {
+        '*': {
+            'jquery': 'jquery-legacy-v1',
+            'marionette': 'marionette-legacy'
+        }
+    },
+
     shim: {
-        'backbone': {
-            deps: ['underscore', 'jquery'],
-            exports: 'Backbone'
+        'jquery-legacy-v1': {
+            exports: "jQuery"
         },
-        'underscore': {
-            exports: '_'
+        'jquery-legacy-v2': {
+            exports: "jQuery"
         },
-        'marionette': {
-            deps: ['jquery', 'underscore', 'backbone'],
-            exports: 'Marionette'
+        'jquery-modern': {
+            exports: "jQuery"
         },
 
         // Required for the Marionette demo
         'backbone.declarative.views': ['marionette']
     }
+
 } );
