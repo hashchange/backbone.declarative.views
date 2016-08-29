@@ -38,14 +38,22 @@ When loaded as a module (e.g. AMD, Node), Backbone.Declarative.Views does not ex
 
 ### With Marionette
 
-Load backbone.declarative.views.js after [Marionette][].
+Load backbone.declarative.views.js before you load [Marionette][].
 
-If you use AMD, please be aware that Marionette is not declared as a dependency in the AMD build of Backbone.Declarative.Views. Declare it yourself by adding the following shim to your config:
+Once both Backbone.Declarative.Views and Marionette are available, call 
+
+```javascript
+Backbone.DeclarativeViews.joinMarionette();
+``` 
+
+in your code.
+
+If you use AMD, make sure that Marionette and Backbone.Declarative.Views are loaded in the right order – Marionette last – by adding the following shim to your config:
 
 ```javascript
 requirejs.config( {
     shim: {
-        'backbone.declarative.views': ['marionette']
+        "marionette": ["backbone.declarative.views"]
     }
 } );
 ```
@@ -443,6 +451,14 @@ Backbone.DeclarativeViews.clearCache();
 
 There is a lightweight link between the caches of Marionette and Backbone.Declarative.Views. If you clear an item from one cache, it gets cleared from the other as well. You can call the cache-clearing methods [of Marionette][Marionette.TemplateCache.clear] and Backbone.Declarative.Views interchangeably.
 
+You enable that link by calling
+
+```javascript
+Backbone.DeclarativeViews.joinMarionette();
+``` 
+
+when Backbone.Declarative.Views and Marionette have loaded. 
+
 And that, surprisingly, is where it ends. You might have expected deeper integration, like an actual joint cache, which would have saved memory and reduced DOM access even further.
 
 Indeed, that joint cache has [existed briefly][src-obsolete-marionette-loader-integration]. But it turned out that the costs outweighed the benefits. The performance gain was minimal at best, sometimes not even offsetting the additional overhead of integration. And crucially, it didn't work that well with some Marionette customizations. [Custom template loaders in Marionette][Marionette.TemplateCache.loadTemplate] had been trickier to use. In the end, full cache integration had been more trouble than it is worth, and has been removed.
@@ -477,22 +493,6 @@ For such a view, only the data attributes matter in the template. The content in
   <!-- This is a template for a collection view, hence no content. -->
 </script>
 ```
-
-### Is Backbone.Declarative.Views available to components which are loaded before it?
-
-Mostly, yes. It depends on how you set up your views. If you define the template property with `extend()`, before instantiating the view, things will just work.
-
-But you can run into an edge case if all of the following conditions are met.
-
-- You load a component which creates its own Backbone.View subtypes.
-- You load the component too early, ie before Backbone.Declarative.Views.
-- While instantiating a view which is supplied by the component, you pass it a template selector as an option.
-
-In that case, and in that case only, the data attributes of the template won't get applied to the `el` of the view.
-
-So to be on the safe side, load your view-related components [after Backbone.Declarative.Views][setup].
-
-Incidentally, [Marionette][] is not affected by that edge case. You can load Marionette before Backbone.Declarative.Views, and in fact [you should][setup-marionette].
 
 ### The template property is set to a selector, but the selector string itself is returned as the template content. Why?
 
@@ -570,11 +570,21 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
-### v3.2.0
+### v4.0.0
 
+###### Changes
+
+The release of Marionette 3 required some minor, yet nonetheless breaking changes for users of Marionette:
+
+- Backbone.Declarative.Views must be loaded [_before_ Marionette][setup-marionette] (previously: after Marionette)
+- You have to enable Marionette integration by calling `Backbone.DeclarativeViews.joinMarionette()` (previously: no action required)
+
+###### Other
+
+- Adapted for Marionette 3
 - Loader receives view as second argument when called in the context of a view
 - `Backbone.DeclarativeViews.getCachedTemplate()` accepts view context as optional second argument (passed on to loader)
-- Loader receives view options as third argument when available. Intended for plugins only. Requires activation of `enforceTemplateLoading()`. Loader must be called in the context of a view.
+- Loader receives view options as third argument when available. Intended for plugins only. Requires that `enforceTemplateLoading()` has been called. Loader must be called in the context of a view.
 - Added `_pluginData` property to cache entries
 - Added `Backbone.DeclarativeViews.plugins.events` for use by plugins
 - Added events `"cacheEntry:view:process"` and `"cacheEntry:view:fetch"` for use by plugins
@@ -726,7 +736,6 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [custom-loader]: #using-a-custom-template-loader
 [marionette-cache-integration]: #marionette-cache-integration
 [other]: #other
-[edge-case]: #is-it-available-to-components-which-are-loaded-before-it
 [build]: #build-process-and-tests
 
 [donations]: #facilitating-development "Facilitating development"
