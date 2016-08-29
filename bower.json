@@ -39,7 +39,7 @@
     "package.json"
   ],
   "devDependencies": {
-    "marionette": "^3.0.0",
+    "marionette": "^3.0.0 <3.1.0",
     "marionette-legacy": "marionette#^1.1.0 <1.9.0 || ^2.0.0",
     "jquery-legacy-v1": "jquery#^1",
     "jquery-legacy-v2": "jquery#^2"
