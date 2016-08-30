@@ -16,7 +16,7 @@ Users of Marionette benefit from [automatic, integrated management][marionette-c
 
 For defining the properties of an `el`, Backbone.Declarative.Views [makes use of data attributes][core]. They are set on the template tag. The `el` is not part of the template content itself, not defined by markup _inside_ the template.
 
-For some use cases, tough, you need just that. Fully self-contained templates, which include the `el` of the view inline in their markup, are the distiguishing feature of [Backbone.Inline.Template][].
+For some use cases, though, you need just that. Fully self-contained templates, which include the `el` of the view inline in their markup, are the distiguishing feature of [Backbone.Inline.Template][].
 
 For the pros and cons of each approach, and the trade-offs involved, see [this comparison][Backbone.Inline.Template-why].
 
@@ -588,7 +588,7 @@ The release of Marionette 3 required some minor, yet nonetheless breaking change
 - Added `_pluginData` property to cache entries
 - Added `Backbone.DeclarativeViews.plugins.events` for use by plugins
 - Added events `"cacheEntry:view:process"` and `"cacheEntry:view:fetch"` for use by plugins
-- Added a view ID to the meta data of views which have been processed successfully
+- Added a view ID to the meta data of views (available earlier than the Backbone view `cid`)
 - Made cache queries return a copy of the data to protect the original cache entry from modification
 - Added error type `Backbone.DeclarativeViews.ConfigurationError`
 
