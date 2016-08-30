@@ -218,5 +218,5 @@ function isMarionetteLt3 () {
  * @returns {Backbone.Marionette.ItemView|Backbone.Marionette.View}
  */
 function getMarionetteView () {
-    return isMarionetteLt3() ? Backbone.Marionette.ItemView : Backbone.Marionette.View;
+    return Backbone.Marionette.ItemView || Backbone.Marionette.View;
 }
