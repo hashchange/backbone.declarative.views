@@ -261,7 +261,7 @@
                 meta.processed = true;
                 meta.inGlobalCache = true;
 
-                if ( data) events.trigger( "cacheEntry:view:process", _copyCacheEntry( data ), meta.originalTemplateProp, view, viewOptions );
+                if ( data ) events.trigger( "cacheEntry:view:process", _copyCacheEntry( data ), meta.originalTemplateProp, view, viewOptions );
 
             } else {
 
@@ -935,6 +935,7 @@
      * @property {string|undefined}    className
      * @property {string|undefined}    id
      * @property {Object|undefined}    attributes
+     * @property {Object}              _pluginData
      */
 
     /**
