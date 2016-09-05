@@ -1184,6 +1184,124 @@
 
         } );
 
+        describe( 'Helper function tryCompileTemplate', function () {
+
+            afterEach( function () {
+                Backbone.DeclarativeViews.custom.compiler = undefined;
+            } );
+
+            describe( 'Compiler configuration', function () {
+                
+                it( 'When no custom compiler is defined, calling tryCompileTemplate returns undefined', function () {
+                    Backbone.DeclarativeViews.custom.compiler = undefined;
+                    expect( Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) ) ).to.be.undefined;
+                } );
+
+                it( 'When the custom compiler is not a function, calling tryCompileTemplate throws an error', function () {
+                    Backbone.DeclarativeViews.custom.compiler = {};
+                    expect( function () {
+                        Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) );
+                    } ).to.throw( Backbone.DeclarativeViews.CustomizationError, "Invalid custom template compiler set in Backbone.DeclarativeViews.custom.compiler: compiler is not a function" );
+                } );
+
+            } );
+
+            describe( 'Arguments', function () {
+
+                var compiler;
+
+                beforeEach( function () {
+                    compiler = sinon.spy();
+                    Backbone.DeclarativeViews.custom.compiler = compiler;
+                } );
+
+                describe( 'When tryCompileTemplate is called with one argument,', function () {
+
+                    beforeEach( function () {
+                        Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo" );
+                    } );
+
+                    it( 'the compiler receives two arguments', function () {
+                        expect( compiler.getCall( 0 ).args ).to.have.length( 2 );
+                    } );
+
+                    it( 'the first argument is the one passed to the compiler', function () {
+                        expect( compiler ).to.have.been.calledWith( "foo" );
+                    } );
+
+                    it( 'the second argument passed to the compiler is undefined', function () {
+                        expect( compiler.getCall( 0 ).args[1] ).to.be.undefined;
+                    } );
+
+                } );
+
+                describe( 'When tryCompileTemplate is called with two arguments,', function () {
+
+                    it( 'both arguments are passed to the compiler, in that order', function () {
+                        var arg1 = "foo",
+                            arg2 = $( "#bar" );
+
+                        Backbone.DeclarativeViews.plugins.tryCompileTemplate( arg1, arg2 );
+                        expect( compiler ).to.have.been.calledWithExactly( arg1, arg2 );
+                    } );
+                    
+                } );
+
+            } );
+
+            describe( 'Compiler error', function () {
+
+                describe( 'When the compiler throws an error, Backbone.Declarative.Views throws an error', function () {
+                    var compilerErrorMessage;
+
+                    beforeEach( function () {
+                        compilerErrorMessage = "compiler error message";
+                        Backbone.DeclarativeViews.custom.compiler = function () { throw new Error( compilerErrorMessage ); };
+                    } );
+
+                    it( 'of type Backbone.DeclarativeViews.CompilerError, with a friendly error message of its own', function () {
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) );
+                        } ).to.throw( Backbone.DeclarativeViews.CompilerError, "An error occurred while compiling the template" );
+                    } );
+
+                    it( 'forwarding the original error message of the compiler', function () {
+                        expect( function () {
+                            Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) );
+                        } ).to.throw( compilerErrorMessage );
+                    } );
+
+                } );
+                
+            } );
+
+            describe( 'Return value', function () {
+
+                describe( 'tryCompileTemplate returns the compiler return value, as it is,', function () {
+
+                    it( 'when it is a function', function () {
+                        // This is what a compiler actually should return
+                        var compilerReturnValue = function () {};
+                        Backbone.DeclarativeViews.custom.compiler = function () { return compilerReturnValue; };
+                        expect( Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) ) ).to.equal( compilerReturnValue );
+                    } );
+
+                    it( 'when it is a string', function () {
+                        Backbone.DeclarativeViews.custom.compiler = function () { return "baz"; };
+                        expect( Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) ) ).to.equal( "baz" );
+                    } );
+
+                    it( 'when it is undefined', function () {
+                        Backbone.DeclarativeViews.custom.compiler = function () {};
+                        expect( Backbone.DeclarativeViews.plugins.tryCompileTemplate( "foo", $( "#bar" ) ) ).to.be.undefined;
+                    } );
+
+                } );
+                
+            } );
+            
+        } );
+
         // Spec: Enforcing template loading with enforceTemplateLoading()
         //
         // Currently, this test is not implemented. Calling enforceTemplateLoading() is irreversible, it can't be

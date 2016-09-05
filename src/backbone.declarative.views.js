@@ -131,6 +131,7 @@
             updateJqueryDataCache: _updateJQueryDataCache,
             registerCacheAlias: _registerCacheAlias,
             enforceTemplateLoading: _enforceTemplateLoading,
+            tryCompileTemplate: _tryCompileTemplate,
             events: events
         },
 
@@ -526,7 +527,7 @@
 
             templateCache[cacheId] = {
                 html: html,
-                compiled: _compileTemplate( html, $template ),
+                compiled: _tryCompileTemplate( html, $template ),
 
                 tagName: data.tagName,
                 className: data.className,
@@ -552,15 +553,19 @@
      * The compiler function is passed the inner HTML of the template node as first argument, and the $template node
      * itself, in a jQuery wrapper, as the second argument.
      *
+     * The template node argument is always present when the function is invoked by Backbone.Declarative.Views. When
+     * invoked by plugins for individual template string snippets, the $template node might be missing when there is no
+     * node for such a snippet.
+     *
      * The compiler should return a function which can be called with the template vars as arguments, producing the
      * final HTML. This is not enforced, though - the compiler can in fact return anything because who knows what hacks
      * people come up with.
      *
      * @param   {string} html
-     * @param   {jQuery} $template
+     * @param   {jQuery} [$template]
      * @returns {Function|undefined}
      */
-    function _compileTemplate ( html, $template ) {
+    function _tryCompileTemplate ( html, $template ) {
         var compiled,
             customCompiler = Backbone.DeclarativeViews.custom.compiler;
 
@@ -571,7 +576,12 @@
             try {
                 compiled = customCompiler( html, $template );
             } catch ( err ) {
-                throw new CompilerError( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
+                throw new CompilerError(
+                    'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + (
+                        $template ?
+                        '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument.' :
+                        '" as the only argument.'
+                    ) + "\nOriginal error thrown by the compiler:\n" + err.message );
             }
 
         }
