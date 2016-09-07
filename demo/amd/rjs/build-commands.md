@@ -16,7 +16,7 @@ The grunt task simply reads the build profiles described below, and feeds them t
 The demo HTML files for JS Bin reference two concatenated build files (per page):
 
 - `vendor.js` for the third-party dependencies. It includes Backbone.Declarative.Views.
-- `backbone-app.js` and `marionette-app.js` for the demo code, consisting of local modules.
+- `backbone-app.js`, `marionette-app.js`, `backbone-precompiled-app.js` and `marionette-precompiled-app.js` for the demo code, consisting of local modules.
 
 The code is not rolled up into a single file because that file would be massive, making it unnecessarily difficult to examine the demo code. The purpose of the demo is to see how Backbone.Declarative.Views is used, so it makes sense to keep the client code separate.
 
@@ -40,6 +40,14 @@ node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/backbone
 # For marionette-app.js:
 
 node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/marionette-app-config.js
+
+# For backbone-precompiled-app.js:
+
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/backbone-precompiled-app-config.js
+
+# For marionette-precompiled-app.js:
+
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/jsbin-parts/marionette-precompiled-app-config.js
 ```
 
 ### Output files
@@ -51,7 +59,7 @@ The output is written to the directory `demo/amd/rjs/output/parts`.
 
 Builds for local demos are created to test that the setup continues to work after optimization with r.js. All modules of a demo end up in a single file. For easier examination, the file is not minified.
 
-For more info, see the comments in `index.html` and `marionette.html`.
+For more info, see the comments in `index.html`, `marionette.html`, `backbone-precompiled.html` and `marionette-precompiled.html`.
 
 ### r.js calls
 
@@ -65,6 +73,14 @@ node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/unified/plain-build-
 # For the Marionette demo:
 
 node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/unified/marionette-build-config.js
+
+# For the vanilla JS demo with precompiled templates:
+
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/unified/plain-precompiled-build-config.js
+
+# For the Marionette demo with precompiled templates:
+
+node node_modules/requirejs/bin/r.js -o demo/amd/rjs/config/unified/marionette-precompiled-build-config.js
 ```
 
 ### Output files

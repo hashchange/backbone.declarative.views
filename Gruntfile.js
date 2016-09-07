@@ -228,6 +228,12 @@ module.exports = function (grunt) {
       unifiedMarionetteBuild : {
         options : getRequirejsBuildProfile( 'demo/amd/rjs/config/unified/marionette-build-config.js', false )
       },
+      unifiedPrecompiledPlainBuild : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/unified/plain-precompiled-build-config.js', false )
+      },
+      unifiedPrecompiledMarionetteBuild : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/unified/marionette-precompiled-build-config.js', false )
+      },
       splitBuildVendor : {
         options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/vendor-config.js', false )
       },
@@ -236,6 +242,12 @@ module.exports = function (grunt) {
       },
       splitBuildMarionetteApp : {
         options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/marionette-app-config.js', false )
+      },
+      splitBuildPrecompiledBackboneApp : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/backbone-precompiled-app-config.js', false )
+      },
+      splitBuildPrecompiledMarionetteApp : {
+        options : getRequirejsBuildProfile( 'demo/amd/rjs/config/jsbin-parts/marionette-precompiled-app-config.js', false )
       }
     },
 

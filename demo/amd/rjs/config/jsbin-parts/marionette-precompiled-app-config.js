@@ -1,7 +1,7 @@
 ({
     mainConfigFile: "../../../require-config.js",
     optimize: "none",
-    name: "local.marionette",
+    name: "local.marionette-precompiled",
     exclude: [
         "usertiming",
         "jquery",
@@ -14,5 +14,5 @@
         "backbone.declarative.views",
         "precompiled.declarative.handlebars.templates"
     ],
-    out: "../../output/parts/marionette-app.js"
+    out: "../../output/parts/marionette-precompiled-app.js"
 })

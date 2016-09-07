@@ -7,8 +7,12 @@
         "jquery",
         "underscore",
         "backbone",
+        "backbone.radio",
         "marionette",
-        "backbone.declarative.views"
+        "handlebars",
+        "marionette.handlebars",
+        "backbone.declarative.views",
+        "precompiled.declarative.handlebars.templates"
     ],
     out: "../../output/parts/backbone-app.js"
 })

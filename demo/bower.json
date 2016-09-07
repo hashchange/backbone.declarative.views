@@ -24,6 +24,9 @@
     "foundation": "~5.5.3",
     "modernizr": "^2 || ~3.3.1",
     "requirejs": "~2.2.0",
-    "usertiming": "~0.1.8"
+    "usertiming": "~0.1.8",
+    "handlebars": "~4.0.5",
+    "marionette.handlebars": "^2.0.0",
+    "precompiled.declarative.handlebars.templates": "https://gist.github.com/f99dca479f91b55a61d7f4994ea5d438.git"
   }
 }
