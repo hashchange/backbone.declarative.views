@@ -628,7 +628,7 @@
 
         describe( 'Events', function () {
 
-            var dataAttributes, attributesAsProperties, processHandler, fetchHandler;
+            var dataAttributes, attributesAsProperties, createHandler, processHandler, fetchHandler;
 
             beforeEach( function () {
                 dataAttributes = {
@@ -651,9 +651,11 @@
 
                 $templateNode.attr( dataAttributes );
 
+                createHandler = sinon.spy();
                 processHandler = sinon.spy();
                 fetchHandler = sinon.spy();
 
+                Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:create", createHandler );
                 Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:view:process", processHandler );
                 Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:view:fetch", fetchHandler );
             } );
@@ -1099,6 +1101,250 @@
                         expect( cacheEntry.attributes.lang ).to.equal( originalProperties.attributes.lang );
 
                         expect( cacheEntry._pluginData ).to.have.a.property( "added", modifiedProperties._pluginData.added );
+                    } );
+
+                } );
+
+            } );
+
+            describe( 'cacheEntry:create event', function () {
+
+                describe( 'Triggering the event', function () {
+
+                    describe( 'The template is not in the cache.', function () {
+
+                        describe( 'When a view is created, the event fires', function () {
+
+                            beforeEach( function () {
+                                view = new View( { template: "#template" } );
+                            } );
+
+                            it( 'exactly once when at no el-related properties have been defined on the view itself', function () {
+                                // In the test fixture, no el-related properties are defined on the view itself.
+                                expect( createHandler ).to.have.been.calledOnce;
+                            } );
+
+                            it( 'exactly once when all but one of the el-related properties have been defined on the view itself', function () {
+                                // In the test fixture, no el-related properties are defined on the view itself, and the
+                                // view is already created. We need to start over.
+                                Backbone.DeclarativeViews.clearCache();
+                                createHandler.reset();
+
+                                // NB Here, we don't define the `id` property on the view.
+                                view = new View( { template: "#template", tagName: "p", className: "definedOnView", attributes: { lang: "ru" } } );
+                                expect( createHandler ).to.have.been.calledOnce;
+                            } );
+
+                            it( 'with the cache entry passed as first argument', function () {
+                                var firstArg = createHandler.getCall( 0 ).args[0];
+                                expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                            } );
+
+                            it( 'with the template property passed as second argument', function () {
+                                var secondArg = createHandler.getCall( 0 ).args[1];
+                                expect( secondArg ).to.equal( "#template" );
+                            } );
+
+                            it( 'with the view passed as third argument', function () {
+                                var thirdArg = createHandler.getCall( 0 ).args[2];
+                                expect( thirdArg ).to.equal( view );
+                            } );
+
+                        } );
+
+                        describe( 'When the template is retrieved with the global API, the event fires', function () {
+
+                            describe( 'without an additional view argument, the event fires', function () {
+
+                                beforeEach( function () {
+                                    Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                } );
+
+                                it( 'exactly once', function () {
+                                    expect( createHandler ).to.have.been.calledOnce;
+                                } );
+
+                                it( 'with the cache entry passed as first argument', function () {
+                                    var firstArg = createHandler.getCall( 0 ).args[0];
+                                    expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                                } );
+
+                                it( 'with the template property passed as second argument', function () {
+                                    var secondArg = createHandler.getCall( 0 ).args[1];
+                                    expect( secondArg ).to.equal( "#template" );
+                                } );
+
+                                it( 'with the third argument being undefined', function () {
+                                    var thirdArg = createHandler.getCall( 0 ).args[2];
+                                    expect( thirdArg ).to.be.undefined;
+                                } );
+
+
+                            } );
+
+                            describe( 'with an additional view argument', function () {
+
+                                beforeEach( function () {
+                                    view = new View();
+                                    Backbone.DeclarativeViews.getCachedTemplate( "#template", view );
+                                } );
+
+                                it( 'exactly once', function () {
+                                    expect( createHandler ).to.have.been.calledOnce;
+                                } );
+
+                                it( 'with the cache entry passed as first argument', function () {
+                                    var firstArg = createHandler.getCall( 0 ).args[0];
+                                    expect( firstArg ).to.returnCacheValueFor( dataAttributes, $templateNode );
+                                } );
+
+                                it( 'with the template property passed as second argument', function () {
+                                    var secondArg = createHandler.getCall( 0 ).args[1];
+                                    expect( secondArg ).to.equal( "#template" );
+                                } );
+
+                                it( 'with the view passed as third argument', function () {
+                                    var thirdArg = createHandler.getCall( 0 ).args[2];
+                                    expect( thirdArg ).to.equal( view );
+                                } );
+
+                            } );
+
+                        } );
+
+                    } );
+
+                    describe( 'The event does not fire', function () {
+
+                        var _originalCustomLoader;
+
+                        beforeEach( function () {
+                            _originalCustomLoader = Backbone.DeclarativeViews.custom.loadTemplate;
+                        } );
+
+                        afterEach( function () {
+                            Backbone.DeclarativeViews.custom.loadTemplate = _originalCustomLoader;
+                        } );
+
+                        describe( 'when the template is not in the cache and', function () {
+
+                            it( 'the view template is an empty string (cache miss)', function () {
+                                view = new View( { template: "" } );
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'the view template is a function (cache miss)', function () {
+                                view = new View( {
+                                    template: function () { return "foo"; }
+                                } );
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'the view template is a string that a (custom) loader cannot process, throwing a generic error (cache miss)', function () {
+                                Backbone.DeclarativeViews.custom.loadTemplate = function () { throw new Error( "loadTemplate blew up" ); };
+                                view = new View( { template: "#throwsError" } );
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'the view does not specify a template', function () {
+                                view = new View();
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'all el-related properties are defined on the view itself', function () {
+                                // ... unless plugins.enforceTemplateLoading() has been called (which we can't test
+                                // because it changes the state irreversibly). That call would ensure that the cache
+                                // entry is created.
+                                view = new View( { template: "#template", tagName: "p", className: "definedOnView", id: "setDynamically", attributes: { lang: "ru" } } );
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                        } );
+
+                        describe( 'when the template is already in the cache and', function () {
+
+                            beforeEach( function () {
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                createHandler.reset();
+                            } );
+
+                            it( 'a view is created with the template', function () {
+                                view = new View( { template: "#template" } );
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'the template is retrieved from the view cache after view creation', function () {
+                                view = new View( { template: "#template" } );
+                                createHandler.reset();
+                                view.declarativeViews.getCachedTemplate();
+                                expect( createHandler ).to.not.have.been.called;
+                            } );
+
+                            it( 'the template is retrieved with the global API', function () {
+                                Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+                                expect( createHandler ).to.not.have.been.called;
+
+                            } );
+
+                        } );
+
+                    } );
+
+                } );
+
+                describe( 'Modifications of the cache value in the event handler', function () {
+
+                    var modifyingCreateHandler, originalProperties, modifiedProperties;
+
+                    beforeEach( function () {
+                        originalProperties = _.clone( attributesAsProperties );
+                        modifiedProperties = {
+                            tagName: "aside",
+                            className: "modifiedClass",
+                            attributes: {
+                                lang: "fr"
+                            }
+                        };
+
+                        modifyingCreateHandler = function ( cacheValue ) {
+                            cacheValue.tagName = modifiedProperties.tagName;
+                            cacheValue.className = modifiedProperties.className;
+                            cacheValue.attributes.lang = modifiedProperties.attributes.lang;
+                        };
+
+                        Backbone.DeclarativeViews.plugins.events.on( "cacheEntry:create", modifyingCreateHandler );
+
+                        view = new View( { template: "#template" } );
+                    } );
+
+                    it( 'show up in the cache value passed to a handler for the cacheEntry:view:process event', function () {
+                        var processEventCacheArg = processHandler.getCall( 0 ).args[0];
+
+                        expect( processEventCacheArg.tagName.toLowerCase() ).to.equal( modifiedProperties.tagName );
+                        expect( processEventCacheArg.className ).to.equal( modifiedProperties.className );
+                        expect( processEventCacheArg.attributes.lang ).to.equal( modifiedProperties.attributes.lang );
+                    } );
+
+                    it( 'show up in the cache value passed to a handler for the cacheEntry:view:fetch event', function () {
+                        var fetchEventCacheArg = fetchHandler.getCall( 0 ).args[0];
+
+                        expect( fetchEventCacheArg.tagName.toLowerCase() ).to.equal( modifiedProperties.tagName );
+                        expect( fetchEventCacheArg.className ).to.equal( modifiedProperties.className );
+                        expect( fetchEventCacheArg.attributes.lang ).to.equal( modifiedProperties.attributes.lang );
+                    } );
+
+                    it( 'show up in the result returned by the cache query and get applied to the `el`', function () {
+                        expect( view.el.tagName.toLowerCase() ).to.equal( modifiedProperties.tagName );
+                        expect( view.el.className ).to.equal( modifiedProperties.className );
+                        expect( view.el.lang ).to.equal( modifiedProperties.attributes.lang );
+                    } );
+
+                    it( 'alter the cache entry itself and persist', function () {
+                        var cacheEntry = Backbone.DeclarativeViews.getCachedTemplate( "#template" );
+
+                        expect( cacheEntry.tagName ).to.equal( modifiedProperties.tagName );
+                        expect( cacheEntry.className ).to.equal( modifiedProperties.className );
+                        expect( cacheEntry.attributes.lang ).to.equal( modifiedProperties.attributes.lang );
                     } );
 
                 } );

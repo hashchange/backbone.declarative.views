@@ -488,6 +488,21 @@
      *
      * Uses a custom loader if specified, instead of loading the template with jQuery (default).
      *
+     * Events
+     * ------
+     *
+     * The method fires the following event:
+     *
+     * - cacheEntry:create
+     *
+     *   Fires only once per cache entry, when a valid cache entry is created. That may happen in the context of a view,
+     *   or with a global query.
+     *
+     *   The event handler receives the original cache entry. If the handler modifies the data, the modifications show
+     *   up in the returned result **and** alter the content in the cache.
+     *
+     *   If a valid cache entry can't be created (flagged as invalid), the event does NOT fire.
+     *
      * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
      * @param   {Backbone.View} [view]         the view which requested the template
      * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. For availability,
@@ -538,6 +553,8 @@
                 // as key.
                 _pluginData: {}
             };
+
+            events.trigger( "cacheEntry:create", templateCache[cacheId], templateProp, view, viewOptions );
 
         } else {
             templateCache[cacheId] = { invalid: true };
