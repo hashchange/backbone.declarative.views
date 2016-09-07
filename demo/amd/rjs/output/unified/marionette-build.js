@@ -15027,7 +15027,7 @@ define("jquery-legacy-v1", (function (global) {
     }
 }(typeof window !== "undefined" ? window : undefined));
 
-// Backbone.Declarative.Views, v4.0.0
+// Backbone.Declarative.Views, v4.1.0
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -15165,6 +15165,7 @@ define("jquery-legacy-v1", (function (global) {
             updateJqueryDataCache: _updateJQueryDataCache,
             registerCacheAlias: _registerCacheAlias,
             enforceTemplateLoading: _enforceTemplateLoading,
+            tryCompileTemplate: _tryCompileTemplate,
             events: events
         },
 
@@ -15179,7 +15180,7 @@ define("jquery-legacy-v1", (function (global) {
             compiler: undefined
         },
 
-        version: "4.0.0"
+        version: "4.1.0"
     };
 
     //
@@ -15295,7 +15296,7 @@ define("jquery-legacy-v1", (function (global) {
                 meta.processed = true;
                 meta.inGlobalCache = true;
 
-                if ( data) events.trigger( "cacheEntry:view:process", _copyCacheEntry( data ), meta.originalTemplateProp, view, viewOptions );
+                if ( data ) events.trigger( "cacheEntry:view:process", _copyCacheEntry( data ), meta.originalTemplateProp, view, viewOptions );
 
             } else {
 
@@ -15521,6 +15522,21 @@ define("jquery-legacy-v1", (function (global) {
      *
      * Uses a custom loader if specified, instead of loading the template with jQuery (default).
      *
+     * Events
+     * ------
+     *
+     * The method fires the following event:
+     *
+     * - cacheEntry:create
+     *
+     *   Fires only once per cache entry, when a valid cache entry is created. That may happen in the context of a view,
+     *   or with a global query.
+     *
+     *   The event handler receives the original cache entry. If the handler modifies the data, the modifications show
+     *   up in the returned result **and** alter the content in the cache.
+     *
+     *   If a valid cache entry can't be created (flagged as invalid), the event does NOT fire.
+     *
      * @param   {string}        templateProp   template selector, or raw template HTML, identifying the cache entry
      * @param   {Backbone.View} [view]         the view which requested the template
      * @param   {Object}        [viewOptions]  the options passed to the view during instantiation. For availability,
@@ -15560,7 +15576,7 @@ define("jquery-legacy-v1", (function (global) {
 
             templateCache[cacheId] = {
                 html: html,
-                compiled: _compileTemplate( html, $template ),
+                compiled: _tryCompileTemplate( html, $template ),
 
                 tagName: data.tagName,
                 className: data.className,
@@ -15571,6 +15587,8 @@ define("jquery-legacy-v1", (function (global) {
                 // as key.
                 _pluginData: {}
             };
+
+            events.trigger( "cacheEntry:create", templateCache[cacheId], templateProp, view, viewOptions );
 
         } else {
             templateCache[cacheId] = { invalid: true };
@@ -15586,15 +15604,19 @@ define("jquery-legacy-v1", (function (global) {
      * The compiler function is passed the inner HTML of the template node as first argument, and the $template node
      * itself, in a jQuery wrapper, as the second argument.
      *
+     * The template node argument is always present when the function is invoked by Backbone.Declarative.Views. When
+     * invoked by plugins for individual template string snippets, the $template node might be missing when there is no
+     * node for such a snippet.
+     *
      * The compiler should return a function which can be called with the template vars as arguments, producing the
      * final HTML. This is not enforced, though - the compiler can in fact return anything because who knows what hacks
      * people come up with.
      *
      * @param   {string} html
-     * @param   {jQuery} $template
+     * @param   {jQuery} [$template]
      * @returns {Function|undefined}
      */
-    function _compileTemplate ( html, $template ) {
+    function _tryCompileTemplate ( html, $template ) {
         var compiled,
             customCompiler = Backbone.DeclarativeViews.custom.compiler;
 
@@ -15605,7 +15627,12 @@ define("jquery-legacy-v1", (function (global) {
             try {
                 compiled = customCompiler( html, $template );
             } catch ( err ) {
-                throw new CompilerError( 'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument' );
+                throw new CompilerError(
+                    'An error occurred while compiling the template. The compiler had been passed the HTML string "' + html + (
+                        $template ?
+                        '" as the first argument, and the corresponding template node, wrapped in a jQuery object, as the second argument.' :
+                        '" as the only argument.'
+                    ) + "\nOriginal error thrown by the compiler:\n" + err.message );
             }
 
         }
@@ -15969,6 +15996,7 @@ define("jquery-legacy-v1", (function (global) {
      * @property {string|undefined}    className
      * @property {string|undefined}    id
      * @property {Object|undefined}    attributes
+     * @property {Object}              _pluginData
      */
 
     /**
