@@ -347,6 +347,8 @@ Backbone.DeclarativeViews.custom.compiler = function ( templateHtml, $template )
 
 The compiler function receives the inner HTML of the template node as the first argument. As the second argument, it is passed the template node itself, in a jQuery wrapper.
 
+The second argument is available for all compiler calls made by Backbone.Declarative.Views. But its presence is not enforced in other contexts. If you use a plugin like [Backbone.Inline.Template][], for instance, the template node is missing when the compiler is invoked for individual template snippets, which don't have a corresponding node in the DOM. In those contexts, always check availability before using the template node argument in your compiler.
+
 The compiler should return a function which accepts the template vars as an argument and produces the final HTML. But in fact, the compiler is allowed to return anything. Backbone.Declarative.Views doesn't care what your compiled templates are, and what you do with them. It just stores them for you.
 
 The return value of the compiler is stored in the `compiled` property [of each cache entry][cache-entry].
@@ -494,6 +496,14 @@ For such a view, only the data attributes matter in the template. The content in
 </script>
 ```
 
+### Does Backbone.Declarative.Views work with precompiled templates?
+
+Yes. You have to use a [custom loader][custom-loader] and a [custom compiler][template-compiler] for it. Both must be tailored to the templating system you use, and match how precompiled templates are accessed in that system.
+
+That might sound intimidating, but is in fact really easy. Just adapt the [reference implementation][Precompiled.Declarative.Handlebars.Templates], which does the job for Handlebars. It is heavily commented to help you along. The actual code consists of just a few lines.
+
+Of course, if you are a Handlebars user, the work is already [done for you][Precompiled.Declarative.Handlebars.Templates].
+
 ### The template property is set to a selector, but the selector string itself is returned as the template content. Why?
 
 The selector doesn't match a DOM element, and hence is [interpreted as a template literal][cache-misses]. Fix your selector to make it work.
@@ -569,6 +579,12 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 [![Donate with Paypal][donations-paypal-button]][donations-paypal-link]
 
 ## Release Notes
+
+### v.4.1.0
+
+- Added `Backbone.DeclarativeViews.plugins.tryCompileTemplate` helper for use by plugins
+- Added `"cacheEntry:create"` event for use by plugins
+- Added demos for using precompiled templates
 
 ### v4.0.0
 
@@ -693,6 +709,8 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [Backbone]: http://backbonejs.org/ "Backbone.js"
 [Marionette]: https://github.com/marionettejs/backbone.marionette#readme "Marionette: a composite application library for Backbone.js"
 [Backbone.Inline.Template]: https://github.com/hashchange/backbone.inline.template "Backbone.Inline.Template"
+[Precompiled.Declarative.Handlebars.Templates]: https://gist.github.com/hashchange/f99dca479f91b55a61d7f4994ea5d438
+
 [Node.js]: http://nodejs.org/ "Node.js"
 [Bower]: http://bower.io/ "Bower: a package manager for the web"
 [npm]: https://npmjs.org/ "npm: Node Packaged Modules"
