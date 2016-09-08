@@ -716,7 +716,7 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [npm]: https://npmjs.org/ "npm: Node Packaged Modules"
 [Grunt]: http://gruntjs.com/ "Grunt: The JavaScript Task Runner"
 [Karma]: http://karma-runner.github.io/ "Karma – Spectacular Test Runner for Javascript"
-[Mocha]: http://visionmedia.github.io/mocha/ "Mocha – the fun, simple, flexible JavaScript test framework"
+[Mocha]: http://mochajs.org/ "Mocha – the fun, simple, flexible JavaScript test framework"
 [Chai]: http://chaijs.com/ "Chai: a BDD / TDD assertion library"
 [Sinon]: http://sinonjs.org/ "Sinon.JS – Versatile standalone test spies, stubs and mocks for JavaScript"
 [JSHint]: http://www.jshint.com/ "JSHint, a JavaScript Code Quality Tool"
