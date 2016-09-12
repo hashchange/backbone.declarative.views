@@ -15027,7 +15027,7 @@ define("jquery-legacy-v1", (function (global) {
     }
 }(typeof window !== "undefined" ? window : undefined));
 
-// Backbone.Declarative.Views, v4.1.0
+// Backbone.Declarative.Views, v4.1.1
 // Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
@@ -15180,7 +15180,7 @@ define("jquery-legacy-v1", (function (global) {
             compiler: undefined
         },
 
-        version: "4.1.0"
+        version: "4.1.1"
     };
 
     //
