@@ -20,6 +20,15 @@ For some use cases, though, you need just that. Fully self-contained templates, 
 
 For the pros and cons of each approach, and the trade-offs involved, see [this comparison][Backbone.Inline.Template-why].
 
+##### Live demos
+
+There are a couple of interactive demos you can play around with. The demos are kept simple and demonstrate basic use cases.
+
+- Backbone: [JSBin][demo-backbone-jsbin], [Codepen][demo-backbone-codepen]
+- Marionette: [JSBin][demo-marionette-jsbin], [Codepen][demo-marionette-codepen]
+- Backbone, with precompiled Handlebars templates: [JSBin][demo-backbone-precompiled-jsbin], [Codepen][demo-backbone-precompiled-codepen]
+- Marionette, with precompiled Handlebars templates: [JSBin][demo-marionette-precompiled-jsbin], [Codepen][demo-marionette-precompiled-codepen]
+
 ##### Supporting the project
 
 If you are a happy user of this project already, you can support its development by [donating to it][donations]. You absolutely don't have to, of course, but perhaps it is something you [might actually want to do][donations].
@@ -580,6 +589,11 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v4.1.1
+
+- Fixed missing AMD mapping for JSBin/Codepen demo
+- Added JSBin/Codepen demo for precompiled templates
+
 ### v.4.1.0
 
 - Added `Backbone.DeclarativeViews.plugins.tryCompileTemplate` helper for use by plugins
@@ -755,6 +769,15 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [marionette-cache-integration]: #marionette-cache-integration
 [other]: #other
 [build]: #build-process-and-tests
+
+[demo-backbone-jsbin]: http://jsbin.com/laxequ/4/edit?html,js,output "Backbone.Declarative.Views demo, using plain Backbone (AMD) – JSBin"
+[demo-backbone-codepen]: http://codepen.io/hashchange/pen/gpNdKp "Backbone.Declarative.Views demo, using plain Backbone (AMD) – Codepen"
+[demo-marionette-jsbin]: http://jsbin.com/sopobo/5/edit?html,js,output "Backbone.Declarative.Views demo, using Marionette (AMD) – JSBin"
+[demo-marionette-codepen]: http://codepen.io/hashchange/pen/vOqzPY "Backbone.Declarative.Views demo, using Marionette (AMD) – Codepen"
+[demo-backbone-precompiled-jsbin]: http://jsbin.com/veteho/1/edit?html,js,output "Backbone.Declarative.Views demo, using plain Backbone with precompiled templates (AMD) – JSBin"
+[demo-backbone-precompiled-codepen]: http://codepen.io/hashchange/pen/qabWjv "Backbone.Declarative.Views demo, using plain Backbone with precompiled templates (AMD) – Codepen"
+[demo-marionette-precompiled-jsbin]: http://jsbin.com/ribehu/1/edit?html,js,output "Backbone.Declarative.Views demo, using Marionette with precompiled templates (AMD) – JSBin"
+[demo-marionette-precompiled-codepen]: http://codepen.io/hashchange/pen/BLjBmL "Backbone.Declarative.Views demo, using Marionette with precompiled templates (AMD) – Codepen"
 
 [donations]: #facilitating-development "Facilitating development"
 [donations-idea]: https://github.com/hashchange/jquery.documentsize/issues/1 "jQuery.documentSize, issue #1: Thank you!"
