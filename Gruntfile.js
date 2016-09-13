@@ -141,7 +141,7 @@ module.exports = function (grunt) {
         singleRun: true
       },
       "test-legacy": {
-        configFile: 'karma.marionette-legacy.conf.js',
+        configFile: 'karma.legacy.conf.js',
         reporters: ['progress'],
         singleRun: true
       },
