@@ -15027,8 +15027,8 @@ define("jquery-legacy-v1", (function (global) {
     }
 }(typeof window !== "undefined" ? window : undefined));
 
-// Backbone.Declarative.Views, v4.1.1
-// Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
+// Backbone.Declarative.Views, v4.1.2
+// Copyright (c) 2014-2017 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
 
@@ -15180,7 +15180,7 @@ define("jquery-legacy-v1", (function (global) {
             compiler: undefined
         },
 
-        version: "4.1.1"
+        version: "4.1.2"
     };
 
     //
@@ -24614,7 +24614,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if ( typeof define === "function" && typeof define.amd === "object" && define.amd ) {
 
         // AMD module
-        define( 'precompiled.declarative.handlebars.templates',[ "exports", "underscore", "backbone", 'handlebars', 'backbone.declarative.views' ], factory );
+        define( 'precompiled.declarative.handlebars.templates',[ "exports", "underscore", "backbone", "handlebars", "backbone.declarative.views" ], factory );
 
     } else if ( supportsExports ) {
 
@@ -24658,8 +24658,8 @@ return /******/ (function(modules) { // webpackBootstrap
             // create the cache entry. In the process, it extracts the el definition from the embedded special comment,
             // if there is one.
             //
-            // We also prepend an HTML comment the bogus HTML, to make sure the content does not accidentally turn into
-            // a selector. Even though that is unlikely, it could happen if the special comment is absent and the
+            // We also prepend an HTML comment to the bogus HTML, to make sure the content does not accidentally turn
+            // into a selector. Even though that is unlikely, it could happen if the special comment is absent and the
             // template content evaluates to a selector for an existing DOM element ("#template").
             //
             // The prepended comment also serves to identify the bogus HTML later on, during clean-up in the

@@ -589,6 +589,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v4.1.2
+
+- Updated jQuery dependency to jQuery 3.2
+
 ### v4.1.1
 
 - Fixed missing AMD mapping for JSBin/Codepen demo

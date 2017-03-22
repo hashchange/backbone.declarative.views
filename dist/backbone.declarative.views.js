@@ -1,5 +1,5 @@
-// Backbone.Declarative.Views, v4.1.1
-// Copyright (c) 2014-2016 Michael Heim, Zeilenwechsel.de
+// Backbone.Declarative.Views, v4.1.2
+// Copyright (c) 2014-2017 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/backbone.declarative.views
 
@@ -151,7 +151,7 @@
             compiler: undefined
         },
 
-        version: "4.1.1"
+        version: "4.1.2"
     };
 
     //
