@@ -704,7 +704,7 @@ The release of Marionette 3 required some minor, yet nonetheless breaking change
 
 MIT.
 
-Copyright (c) 2014-2024 Michael Heim.
+Copyright (c) 2014-2025 Michael Heim.
 
 Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [See file][data-provider.js].
 
